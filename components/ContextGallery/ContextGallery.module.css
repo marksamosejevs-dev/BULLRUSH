@@ -1,11 +1,15 @@
 .section {
   background: var(--bone);
   padding-top: clamp(80px, 14vh, 160px);
+  padding-bottom: clamp(64px, 10vh, 120px);
 }
 
 .head {
-  max-width: 720px;
-  padding-bottom: clamp(48px, 8vh, 96px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: clamp(40px, 6vh, 72px);
 }
 
 .heading {
@@ -20,41 +24,85 @@
   line-height: 1.6;
 }
 
-.gallery {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px;
-  background: var(--line);
+.arrows {
+  display: none;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-@media (min-width: 760px) {
-  .gallery {
-    grid-template-columns: repeat(3, 1fr);
+@media (min-width: 700px) {
+  .arrows {
+    display: flex;
   }
 }
 
-.tile {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: var(--bone);
+.arrow {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  font-size: 1rem;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
 }
 
-.tile :global(.image) {
+.arrow:hover {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.track {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-inline: var(--gutter);
+  margin-inline: calc(var(--gutter) * -1);
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.slide.wide {
+  width: min(64vw, 620px);
+  aspect-ratio: 4 / 3;
+}
+
+.slide.tall {
+  width: min(42vw, 380px);
+  aspect-ratio: 3 / 4;
+}
+
+@media (max-width: 700px) {
+  .slide.wide,
+  .slide.tall {
+    width: 82vw;
+  }
+}
+
+.slide :global(.plate-image) {
   transition: transform var(--dur-glacial) var(--ease-enter);
 }
 
-.tile:hover :global(.image) {
+.slide:hover :global(.plate-image) {
   transform: scale(1.035);
 }
 
-.tileLabel {
+.slideLabel {
   position: absolute;
   left: 20px;
   bottom: 18px;
+  z-index: 1;
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-micro);
   letter-spacing: 0.16em;
   color: var(--bone);
-  z-index: 1;
 }

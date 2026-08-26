@@ -1,6 +1,6 @@
 "use client";
 
-import { BottleObject } from "@/components/BottleObject/BottleObject";
+import { useState } from "react";
 import { Plate } from "@/components/Plate/Plate";
 import { plates } from "@/data/plates";
 import { product } from "@/data/product";
@@ -8,29 +8,47 @@ import { useReveal } from "@/lib/use-reveal";
 import styles from "./ProductObject.module.css";
 
 const PLATE_BY_KEY: Record<string, keyof typeof plates> = {
-  body: "macro-cap",
+  body: "reflection",
   cap: "macro-cap",
   mark: "macro-emboss",
   signal: "macro-label",
 };
 
-function MaterialRow({ index, label, copy, plateKey }: { index: number; label: string; copy: string; plateKey: string }) {
-  const ref = useReveal<HTMLDivElement>();
+function MaterialRow({
+  index,
+  label,
+  copy,
+  active,
+  onActivate,
+}: {
+  index: number;
+  label: string;
+  copy: string;
+  active: boolean;
+  onActivate: () => void;
+}) {
+  const ref = useReveal<HTMLButtonElement>();
   return (
-    <div ref={ref} className={`reveal ${styles.row}`}>
-      <div className={styles.rowMedia}>
-        <Plate scene={PLATE_BY_KEY[plateKey] ?? "macro-cap"} />
-      </div>
-      <div className={styles.rowText}>
-        <span className={styles.rowIndex}>{String(index + 1).padStart(2, "0")}</span>
-        <h3 className={styles.rowLabel}>{label}</h3>
-        <p className={styles.rowCopy}>{copy}</p>
-      </div>
-    </div>
+    <button
+      ref={ref}
+      type="button"
+      className={`reveal ${styles.row} ${active ? styles.rowActive : ""}`}
+      onMouseEnter={onActivate}
+      onFocus={onActivate}
+      aria-pressed={active}
+    >
+      <span className={styles.rowIndex}>{String(index + 1).padStart(2, "0")}</span>
+      <span className={styles.rowText}>
+        <span className={styles.rowLabel}>{label}</span>
+        <span className={styles.rowCopy}>{copy}</span>
+      </span>
+    </button>
   );
 }
 
 export function ProductObject() {
+  const [active, setActive] = useState(0);
+
   return (
     <section className={styles.section} aria-labelledby="product-object-heading">
       <div className={`container ${styles.grid}`}>
@@ -41,14 +59,25 @@ export function ProductObject() {
             <br />
             AN INSTRUMENT.
           </h2>
-          <div className={styles.bottleWrap}>
-            <BottleObject lit showLabel={false} />
+          <div className={styles.mediaWrap}>
+            {product.materials.map((m, i) => (
+              <div key={m.key} className={styles.mediaLayer} data-visible={active === i}>
+                <Plate scene={PLATE_BY_KEY[m.key] ?? "macro-cap"} sizes="(min-width: 900px) 42vw, 92vw" />
+              </div>
+            ))}
           </div>
         </div>
 
         <div className={styles.rows}>
           {product.materials.map((m, i) => (
-            <MaterialRow key={m.key} index={i} label={m.label} copy={m.copy} plateKey={m.key} />
+            <MaterialRow
+              key={m.key}
+              index={i}
+              label={m.label}
+              copy={m.copy}
+              active={active === i}
+              onActivate={() => setActive(i)}
+            />
           ))}
         </div>
       </div>

@@ -1,15 +1,10 @@
 /**
  * Photography slots.
  *
- * No supplied photography files reached this build — only reference
- * screenshots visible in chat, which are not exportable image assets.
- * Rather than substitute stock/AI photography (explicitly against brief
- * §44–45), each slot below renders an art-directed CSS material study in
- * the BULLRUSH palette until real photography is dropped in.
- *
- * To upgrade a slot: add the file to /public/images/<key>.jpg using the
- * exact filename below. <Plate> will detect it and swap over automatically —
- * no component code needs to change.
+ * Real photography from the BULLRUSH asset pack lives in /public/images.
+ * Each slot also carries a CSS material-study fallback (the `background`
+ * value) for any future key added before its file exists — <Plate> falls
+ * back to it automatically on a 404, so a new slot never breaks layout.
  */
 
 export interface PlateSpec {
@@ -19,13 +14,23 @@ export interface PlateSpec {
   background: string;
 }
 
-/**
- * Keys with a real file already dropped into /public/images. Everything
- * else renders the CSS fallback only — no request is even attempted, so
- * there's no console noise from expected 404s. Add a key here the same
- * day you add its file.
- */
-export const availablePlates = new Set<string>([]);
+/** Keys with a real file in /public/images. */
+export const availablePlates = new Set<string>([
+  "hero",
+  "macro-cap",
+  "macro-emboss",
+  "macro-label",
+  "lying",
+  "reflection",
+  "three",
+  "desk",
+  "bag",
+  "topdown",
+  "ledge",
+  "empty-ledge",
+  "geometry",
+  "planes",
+]);
 
 export const plates: Record<string, PlateSpec> = {
   hero: {

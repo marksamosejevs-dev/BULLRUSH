@@ -15,9 +15,11 @@ export function MaterialInterlude({ scene, line }: MaterialInterludeProps) {
 
   return (
     <section className={styles.section}>
-      <Plate scene={scene}>
-        <div className={styles.scrim} />
-      </Plate>
+      <div className={styles.plateLayer}>
+        <Plate scene={scene}>
+          <div className={styles.scrim} />
+        </Plate>
+      </div>
       <div ref={ref} className={`reveal ${styles.copy}`}>
         <h2 className={styles.line}>{line}</h2>
       </div>

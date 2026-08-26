@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BottleObject } from "@/components/BottleObject/BottleObject";
+import { Plate } from "@/components/Plate/Plate";
 import { useCart } from "@/lib/cart-context";
 import styles from "./CartDrawer.module.css";
 
@@ -37,7 +37,7 @@ export function CartDrawer() {
         aria-label="Shopping cart"
       >
         <div className={styles.head}>
-          <h2 className={styles.title}>CART</h2>
+          <h2 className={`card-title ${styles.title}`}>CART</h2>
           <button type="button" className={styles.close} onClick={closeCart} aria-label="Close cart">
             ×
           </button>
@@ -57,7 +57,7 @@ export function CartDrawer() {
             {lines.map((line) => (
               <li key={line.id} className={styles.line}>
                 <div className={styles.thumb}>
-                  <BottleObject showLabel={false} className={styles.thumbBottle} />
+                  <Plate scene="topdown" sizes="64px" grain={false} />
                 </div>
                 <div className={styles.lineInfo}>
                   <p className={styles.lineName}>{line.name}</p>

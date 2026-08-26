@@ -21,7 +21,7 @@ export function Transparency() {
           <div className={styles.grid}>
             {transparencyItems.map((item) => (
               <div key={item.label} className={styles.item}>
-                <h3 className={styles.itemLabel}>{item.label}</h3>
+                <h3 className={`card-title ${styles.itemLabel}`}>{item.label}</h3>
                 <p className={styles.itemDetail}>{item.detail}</p>
               </div>
             ))}

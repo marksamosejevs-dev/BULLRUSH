@@ -7,17 +7,15 @@
   background: var(--ink);
 }
 
-.bottleWrap {
+.plateLayer {
   position: absolute;
-  right: clamp(-40px, -2vw, 40px);
-  bottom: -6%;
-  opacity: 0.5;
-  filter: brightness(0.5);
-  pointer-events: none;
+  inset: 0;
 }
 
-.bottle {
-  --w: clamp(220px, 34vw, 480px);
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(9, 9, 8, 0.94) 0%, rgba(9, 9, 8, 0.65) 46%, rgba(9, 9, 8, 0.35) 100%);
 }
 
 .content {
@@ -36,6 +34,20 @@
   font-size: var(--fs-small);
   letter-spacing: 0.14em;
   color: var(--steel);
+}
+
+.trust {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+
+.trust li {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--ash);
 }
 
 .cta {

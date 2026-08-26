@@ -9,27 +9,37 @@ npm install
 npm run dev
 ```
 
+## Assets
+
+Real BULLRUSH product photography and the brand-deck-sourced horn mark are
+in place: `/public/images/*.jpg` (14 supplied photos) and
+`components/HornMark` (exact SVG path data from `mark-black.svg`, plus a
+static seal variant baked into `public/favicon.svg`). `components/Plate`
+(`data/plates.ts`) renders each real photo via `next/image`; a scene not
+yet backed by a file falls back to an art-directed CSS material study
+instead of a broken image or stock/AI photography — add the key to
+`availablePlates` the same day you drop the file in.
+
+Typography, color, motion timing and the two-tier mark system follow the
+supplied brand deck (`data/brand.ts`, the `--font-*`/`--ease-*`/`--dur-*`
+tokens in `app/globals.css`, and the `.card-title` utility for the deck's
+"Card title" type role).
+
 ## What's real vs. placeholder
 
-No brand-deck PDF or product photography reached this build — only reference
-screenshots visible in chat, which aren't exportable files. Everything here
-was built directly from the brief's design tokens and copy rules, with the
-horn mark reproduced as vector (`components/HornMark`) and every photography
-slot rendered as an art-directed CSS material study (`components/Plate`,
-`data/plates.ts`) instead of stock/AI imagery.
-
-To drop in real photography: add the file to `/public/images/<key>.jpg`
-using the filename already referenced in `data/plates.ts`, then add that
-key to `availablePlates` in the same file. The component picks it up with
-no other code changes.
-
-Facts the brief explicitly says not to invent are left as empty arrays /
+Four production claims are confirmed and used throughout the site
+(`data/trust.ts`): CGMP facility, Non-GMO, Made in USA, third-party tested.
+Everything else the brief says not to invent is left as an empty array /
 `null` in `data/`, each with a comment on what to fill in:
 
 - `data/product.ts` — `price` (checkout currently reads "confirmed at checkout")
 - `data/formula.ts` — `ingredients` (Formula section shows a holding state until populated)
 - `data/evidence.ts` — `clinicalReferences` (same pattern)
-- `data/transparency.ts` — `transparencyItems` (sourcing/testing/manufacturing facts)
+
+`data/transparency.ts` is now populated from the four confirmed claims —
+extend it once further documentation (batch records, sourcing detail)
+exists. The consistency chart (`components/ConsistencyChart`) is explicitly
+labeled illustrative/conceptual, not measured data or a clinical outcome.
 
 Checkout is not wired to a payment processor — the cart is fully functional
 (add/remove/quantity, localStorage-persisted) but the CHECKOUT button shows

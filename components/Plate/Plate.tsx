@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { availablePlates, plates } from "@/data/plates";
 import styles from "./Plate.module.css";
@@ -10,14 +11,19 @@ interface PlateProps {
   children?: ReactNode;
   /** Adds a fine grain texture over the art-directed fallback. */
   grain?: boolean;
+  /** Responsive width hint passed to next/image. Defaults to full viewport width. */
+  sizes?: string;
+  /** Disables lazy-loading for above-the-fold images (the hero shot). */
+  priority?: boolean;
 }
 
 /**
- * A photography slot. Tries the real supplied file first; if it 404s,
- * falls back to an art-directed material study in the same position so
- * layout never breaks and nothing looks like a broken-image icon.
+ * A photography slot. Renders the real supplied file via next/image
+ * (optimized, responsive, lazy by default); if a key has no file yet or
+ * the request 404s, falls back to an art-directed material study in the
+ * same position so layout never breaks.
  */
-export function Plate({ scene, className, children, grain = true }: PlateProps) {
+export function Plate({ scene, className, children, grain = true, sizes = "100vw", priority = false }: PlateProps) {
   const spec = plates[scene];
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -28,14 +34,13 @@ export function Plate({ scene, className, children, grain = true }: PlateProps) 
   return (
     <div className={[styles.plate, grain ? styles.grain : "", className].filter(Boolean).join(" ")} style={style}>
       {!imageFailed && availablePlates.has(spec.key) && (
-        // Plain <img>: these slots accept an arbitrary future file the
-        // build has no knowledge of, so static next/image sizing doesn't apply.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={spec.file}
           alt={spec.alt}
-          className={styles.image}
-          loading="lazy"
+          fill
+          sizes={sizes}
+          priority={priority}
+          className={`${styles.image} plate-image`}
           onError={() => setImageFailed(true)}
         />
       )}

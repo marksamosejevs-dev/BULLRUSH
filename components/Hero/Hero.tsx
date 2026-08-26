@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BottleObject } from "@/components/BottleObject/BottleObject";
 import { Plate } from "@/components/Plate/Plate";
 import { product } from "@/data/product";
 import { useScrollY } from "@/lib/use-scroll-progress";
@@ -27,13 +26,9 @@ export function Hero() {
         className={styles.plateLayer}
         style={{ transform: `scale(${1 + progress * 0.08})`, opacity: 1 - progress * 0.55 }}
       >
-        <Plate scene="hero" grain>
+        <Plate scene="hero" grain priority sizes="100vw">
           <div className={styles.scrim} />
         </Plate>
-      </div>
-
-      <div className={styles.bottleLayer} style={{ transform: `translateY(${progress * -30}px)` }}>
-        <BottleObject lit={scrollY > 40} className={styles.bottle} />
       </div>
 
       <div className={`container ${styles.content}`} style={{ opacity: 1 - progress * 1.3 }}>

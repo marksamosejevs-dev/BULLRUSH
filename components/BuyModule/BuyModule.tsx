@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BottleObject } from "@/components/BottleObject/BottleObject";
+import { Plate } from "@/components/Plate/Plate";
 import { product } from "@/data/product";
 import { useCart, type PurchaseType } from "@/lib/cart-context";
 import { useReveal } from "@/lib/use-reveal";
@@ -35,12 +35,12 @@ export function BuyModule() {
     <section id="product" className={styles.section} aria-labelledby="buy-heading">
       <div ref={ref} className={`container reveal-scale ${styles.grid}`}>
         <div className={styles.media}>
-          <BottleObject lit className={styles.bottle} />
+          <Plate scene="lying" sizes="(min-width: 900px) 50vw, 100vw" />
         </div>
 
         <div className={styles.card}>
           <p className="eyebrow">BULLRUSH DAILY</p>
-          <h2 id="buy-heading" className={styles.title}>
+          <h2 id="buy-heading" className={`card-title ${styles.title}`}>
             {product.descriptor}
           </h2>
           <p className={styles.pack}>{product.packSize}</p>

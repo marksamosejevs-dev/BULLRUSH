@@ -87,16 +87,11 @@
 }
 
 .thumb {
+  position: relative;
   width: 64px;
   height: 90px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  overflow: hidden;
   background: rgba(236, 233, 228, 0.06);
-}
-
-.thumbBottle {
-  --w: 40px;
 }
 
 .lineInfo {
@@ -108,6 +103,7 @@
 
 .lineName {
   font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 500;
   font-size: 0.9rem;
   letter-spacing: 0.02em;
 }

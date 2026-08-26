@@ -1,0 +1,48 @@
+.section {
+  background: var(--graphite);
+  color: var(--bone);
+  padding-block: clamp(80px, 14vh, 160px);
+}
+
+.grid {
+  display: grid;
+  gap: 40px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 96px;
+  }
+}
+
+.heading {
+  margin-top: 18px;
+  font-size: var(--fs-h2);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: var(--steel);
+  line-height: 1.7;
+  font-size: 1.05rem;
+  align-self: end;
+}
+
+.answer {
+  margin-top: 12px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(236, 233, 228, 0.16);
+  color: var(--bone);
+}
+
+.answerLabel {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  color: var(--oxblood);
+}

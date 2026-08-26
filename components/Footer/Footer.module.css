@@ -31,6 +31,7 @@
 
 .name {
   font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 500;
   font-size: 1.1rem;
   letter-spacing: 0.1em;
 }

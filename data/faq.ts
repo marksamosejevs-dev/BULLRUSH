@@ -37,11 +37,15 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "Where is it manufactured?",
-    answer: "Manufacturing origin will be published here once confirmed.",
+    answer: "Made in the USA, in a facility operating under current Good Manufacturing Practice (CGMP).",
   },
   {
     question: "Is it independently tested?",
-    answer: "Testing and certification details will be published here as they are confirmed.",
+    answer: "Yes. BULLRUSH DAILY is third-party tested — verified outside of our own facility, not only within it.",
+  },
+  {
+    question: "Is it Non-GMO?",
+    answer: "Yes. BULLRUSH DAILY is formulated without genetically modified ingredients.",
   },
   {
     question: "Can I cancel a subscription?",

@@ -10,24 +10,26 @@
     opacity var(--dur-slow) var(--ease-enter);
 }
 
+/* Pre-lock state: each horn is rotated toward the centre on a hinge at
+   its outer tip, then swings outward into its resting position to lock. */
 .animated .left {
-  transform: translate(-14px, -10px) rotate(-4deg);
-  transform-origin: 24px 24px;
+  transform: rotate(16deg);
+  transform-origin: 15px 12px;
 }
 
 .animated .right {
-  transform: translate(14px, -10px) rotate(4deg);
-  transform-origin: 216px 24px;
+  transform: rotate(-16deg);
+  transform-origin: 185px 12px;
 }
 
 .animated .pendant {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
 }
 
 .animated.locked .left,
 .animated.locked .right {
-  transform: translate(0, 0) rotate(0deg);
+  transform: rotate(0deg);
 }
 
 .animated.locked .pendant {

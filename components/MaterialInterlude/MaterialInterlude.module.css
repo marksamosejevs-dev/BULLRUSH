@@ -8,6 +8,11 @@
   overflow: hidden;
 }
 
+.plateLayer {
+  position: absolute;
+  inset: 0;
+}
+
 .scrim {
   position: absolute;
   inset: 0;

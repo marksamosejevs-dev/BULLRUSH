@@ -38,7 +38,7 @@ export function FormulaExplorer() {
               ))}
             </div>
             <div className={styles.detail}>
-              <h3 className={styles.detailName}>{selected.name}</h3>
+              <h3 className={`card-title ${styles.detailName}`}>{selected.name}</h3>
               <p className={styles.detailDose}>{selected.dose}</p>
               <p className={styles.detailFunction}>{selected.function}</p>
               <p className={styles.detailBody}>{selected.description}</p>
