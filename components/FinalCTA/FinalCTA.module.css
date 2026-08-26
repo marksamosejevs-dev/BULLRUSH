@@ -1,0 +1,43 @@
+.section {
+  position: relative;
+  min-height: 90svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.bottleWrap {
+  position: absolute;
+  right: clamp(-40px, -2vw, 40px);
+  bottom: -6%;
+  opacity: 0.5;
+  filter: brightness(0.5);
+  pointer-events: none;
+}
+
+.bottle {
+  --w: clamp(220px, 34vw, 480px);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  color: var(--bone);
+}
+
+.headline {
+  font-size: var(--fs-display);
+}
+
+.product {
+  margin-top: 24px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.14em;
+  color: var(--steel);
+}
+
+.cta {
+  margin-top: 44px;
+}

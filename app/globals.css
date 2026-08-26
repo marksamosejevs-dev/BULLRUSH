@@ -1,0 +1,297 @@
+/* ==========================================================================
+   BULLRUSH — Design Tokens
+   Men's Performance Standard
+   ========================================================================== */
+
+:root {
+  /* Brand palette */
+  --bone: #ece9e4;
+  --paper: #f4f2ee;
+
+  --ink: #121212;
+  --graphite: #232320;
+
+  --ash: #605b53;
+  --steel: #c3bdb3;
+
+  --oxblood: #6e2b2b;
+  --oxblood-deep: #4a1c1c;
+
+  --line: #d5d0c7;
+
+  /* Surfaces */
+  --surface: var(--bone);
+  --surface-alt: var(--paper);
+  --on-surface: var(--ink);
+
+  /* Radius — square geometry, always */
+  --radius: 0;
+
+  /* Motion — slow, precise, heavy */
+  --ease-standard: cubic-bezier(0.22, 0.61, 0.2, 0.99);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 240ms;
+  --dur-base: 480ms;
+  --dur-slow: 640ms;
+  --dur-glacial: 900ms;
+
+  /* Layout */
+  --container-max: 1680px;
+  --gutter: clamp(20px, 4vw, 64px);
+  --header-h: 76px;
+
+  /* Type scale */
+  --fs-hero: clamp(3rem, 9vw, 8.5rem);
+  --fs-display: clamp(2.5rem, 6.5vw, 6rem);
+  --fs-h2: clamp(2rem, 4.5vw, 3.75rem);
+  --fs-h3: clamp(1.35rem, 2.4vw, 2rem);
+  --fs-body: 1rem;
+  --fs-small: 0.8125rem;
+  --fs-micro: 0.6875rem;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--ink);
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--font-text), "Golos Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--oxblood);
+  color: var(--bone);
+}
+
+:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+}
+
+/* ---- utility layer ---- */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 16px;
+  height: 1px;
+  background: var(--oxblood);
+}
+
+.rule {
+  height: 1px;
+  width: 100%;
+  background: var(--line);
+  border: 0;
+}
+
+.rule--dark {
+  background: rgba(236, 233, 228, 0.16);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 200;
+  background: var(--ink);
+  color: var(--bone);
+  padding: 12px 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: top var(--dur-fast) var(--ease-standard);
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* ---- reveal-on-scroll primitives ---- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity var(--dur-slow) var(--ease-enter),
+    transform var(--dur-slow) var(--ease-enter);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.985);
+  transition:
+    opacity var(--dur-glacial) var(--ease-enter),
+    transform var(--dur-glacial) var(--ease-enter);
+}
+
+.reveal-scale.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---- buttons ---- */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 26px;
+  border-radius: var(--radius);
+  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+  white-space: nowrap;
+}
+
+.btn .arrow {
+  display: inline-block;
+  transition: transform var(--dur-base) var(--ease-standard);
+}
+
+.btn:hover .arrow {
+  transform: translateX(6px);
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.btn-primary:hover {
+  background: var(--oxblood-deep);
+}
+
+.btn-oxblood {
+  background: var(--oxblood);
+  color: var(--bone);
+}
+
+.btn-oxblood:hover {
+  background: var(--oxblood-deep);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: inherit;
+  padding-inline: 0;
+  border-bottom: 1px solid currentColor;
+}
+
+.btn-ghost-invert {
+  background: transparent;
+  color: var(--bone);
+  padding-inline: 0;
+  border-bottom: 1px solid rgba(236, 233, 228, 0.5);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled:hover {
+  background: var(--ink);
+}

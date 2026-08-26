@@ -1,0 +1,192 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(9, 9, 8, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+
+.scrim[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 151;
+  width: min(440px, 100vw);
+  background: var(--ink);
+  color: var(--bone);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  transform: translateX(100%);
+  transition: transform var(--dur-base) var(--ease-enter);
+}
+
+.drawer[data-open="true"] {
+  transform: translateX(0);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+}
+
+.title {
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+}
+
+.close {
+  font-size: 1.6rem;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+}
+
+.empty {
+  padding-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--steel);
+}
+
+.emptyLink {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--bone);
+  border-bottom: 1px solid var(--bone);
+  width: fit-content;
+}
+
+.lines {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(236, 233, 228, 0.14);
+}
+
+.thumb {
+  width: 64px;
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(236, 233, 228, 0.06);
+}
+
+.thumbBottle {
+  --w: 40px;
+}
+
+.lineInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lineName {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.lineDescriptor {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+}
+
+.lineControls {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(236, 233, 228, 0.24);
+}
+
+.stepper button {
+  width: 26px;
+  height: 26px;
+  font-size: 0.9rem;
+}
+
+.stepper span {
+  min-width: 22px;
+  text-align: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+}
+
+.remove {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  border-bottom: 1px solid transparent;
+}
+
+.remove:hover {
+  color: var(--bone);
+  border-color: var(--bone);
+}
+
+.linePrice {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.foot {
+  padding-top: 16px;
+}
+
+.subtotalRow {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+.checkout {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+  padding-block: 18px;
+}
+
+.checkoutNote {
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: var(--steel);
+  line-height: 1.5;
+}

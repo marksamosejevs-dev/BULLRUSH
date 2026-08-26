@@ -1,0 +1,51 @@
+.mark {
+  overflow: visible;
+}
+
+.left,
+.right,
+.pendant {
+  transition:
+    transform var(--dur-glacial) var(--ease-enter),
+    opacity var(--dur-slow) var(--ease-enter);
+}
+
+.animated .left {
+  transform: translate(-14px, -10px) rotate(-4deg);
+  transform-origin: 24px 24px;
+}
+
+.animated .right {
+  transform: translate(14px, -10px) rotate(4deg);
+  transform-origin: 216px 24px;
+}
+
+.animated .pendant {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.animated.locked .left,
+.animated.locked .right {
+  transform: translate(0, 0) rotate(0deg);
+}
+
+.animated.locked .pendant {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 220ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .left,
+  .right,
+  .pendant {
+    transition: none;
+  }
+  .animated .left,
+  .animated .right,
+  .animated .pendant {
+    transform: none;
+    opacity: 1;
+  }
+}

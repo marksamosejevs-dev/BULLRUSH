@@ -1,0 +1,145 @@
+.section {
+  background: var(--paper);
+  padding-block: clamp(80px, 14vh, 160px);
+}
+
+.grid {
+  display: grid;
+  gap: 56px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 0.95fr;
+    gap: 96px;
+  }
+}
+
+.media {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(180deg, #dcd8cf 0%, #c3bdb3 100%);
+  padding: clamp(40px, 8vh, 96px) 0;
+}
+
+.bottle {
+  --w: clamp(180px, 20vw, 280px);
+}
+
+.card {
+  max-width: 480px;
+}
+
+.title {
+  margin-top: 16px;
+  font-size: var(--fs-h3);
+}
+
+.pack {
+  margin-top: 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.1em;
+  color: var(--ash);
+}
+
+.priceRow {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.price {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-size: 2rem;
+}
+
+.pricePending {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.06em;
+  color: var(--ash);
+}
+
+.toggle {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toggleOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  background: var(--bone);
+  text-align: left;
+  font-size: 0.9rem;
+  transition: background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.toggleActive {
+  background: var(--ink);
+  color: var(--bone);
+  border-color: var(--ink);
+}
+
+.save {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--oxblood);
+}
+
+.toggleActive .save {
+  color: var(--steel);
+}
+
+.qtyRow {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qtyLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  color: var(--ash);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+}
+
+.stepper button {
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+}
+
+.stepper span {
+  min-width: 32px;
+  text-align: center;
+  font-family: var(--font-mono), monospace;
+}
+
+.cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 28px;
+  padding-block: 20px;
+}
+
+.note {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: var(--ash);
+}

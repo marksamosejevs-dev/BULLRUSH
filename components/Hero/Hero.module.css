@@ -1,0 +1,124 @@
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.plateLayer {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(9, 9, 8, 0.92) 0%, rgba(9, 9, 8, 0.4) 42%, rgba(9, 9, 8, 0.15) 100%);
+}
+
+.bottleLayer {
+  position: absolute;
+  right: clamp(24px, 8vw, 140px);
+  bottom: 0;
+  z-index: 1;
+  will-change: transform;
+}
+
+.bottle {
+  --w: clamp(160px, 24vw, 340px);
+}
+
+@media (max-width: 720px) {
+  .bottleLayer {
+    top: calc(var(--header-h) + 24px);
+    right: 20px;
+    bottom: auto;
+  }
+
+  .bottle {
+    --w: 108px;
+  }
+
+  .content {
+    max-width: 78%;
+  }
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  color: var(--bone);
+  padding-bottom: clamp(56px, 9vh, 110px);
+  max-width: 760px;
+  will-change: opacity;
+}
+
+.eyebrow {
+  color: var(--steel);
+  margin-bottom: 22px;
+}
+
+.headline {
+  font-size: var(--fs-hero);
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  margin-top: 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.16em;
+  color: var(--steel);
+}
+
+.ctas {
+  margin-top: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  align-items: center;
+}
+
+.scrollCue {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 28px;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--steel);
+}
+
+@media (min-width: 700px) {
+  .scrollCue {
+    display: flex;
+  }
+}
+
+.scrollLine {
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(180deg, transparent, var(--steel));
+}
+
+.scrollLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plateLayer,
+  .bottleLayer,
+  .content,
+  .scrollCue {
+    transition: none !important;
+  }
+}

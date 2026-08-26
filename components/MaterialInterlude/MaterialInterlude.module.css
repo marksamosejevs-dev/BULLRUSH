@@ -1,0 +1,27 @@
+.section {
+  position: relative;
+  height: 70svh;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 9, 8, 0.4);
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  color: var(--bone);
+  text-align: center;
+  padding-inline: var(--gutter);
+}
+
+.line {
+  font-size: clamp(2.2rem, 7vw, 5rem);
+}

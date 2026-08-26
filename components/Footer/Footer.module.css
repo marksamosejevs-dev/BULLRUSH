@@ -1,0 +1,96 @@
+.footer {
+  background: var(--ink);
+  color: var(--bone);
+  padding-top: clamp(64px, 10vh, 120px);
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  padding-bottom: 64px;
+}
+
+@media (min-width: 760px) {
+  .top {
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mark {
+  width: 34px;
+  height: auto;
+}
+
+.name {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+.descriptor {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  color: var(--steel);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.colHead {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  color: var(--ash);
+}
+
+.link {
+  font-size: 0.9rem;
+  color: var(--steel);
+  transition: color var(--dur-fast) var(--ease-standard);
+  width: fit-content;
+}
+
+.link:hover {
+  color: var(--bone);
+}
+
+.bottom {
+  padding-bottom: 40px;
+}
+
+.bottomRow {
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  color: var(--ash);
+}
+
+@media (min-width: 900px) {
+  .bottomRow {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+  }
+
+  .bottomRow span:last-child {
+    max-width: 52ch;
+    text-align: right;
+  }
+}

@@ -1,0 +1,137 @@
+.bottle {
+  --w: clamp(160px, 20vw, 260px);
+  position: relative;
+  width: var(--w);
+  aspect-ratio: 240 / 420;
+  filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.45));
+}
+
+.cap {
+  position: relative;
+  height: 22%;
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(100deg, #1c1c19 0%, #302f2a 38%, #16160f 62%, #232320 100%);
+  overflow: hidden;
+}
+
+.capRidges {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 1.5px,
+    transparent 1.5px,
+    transparent 5px
+  );
+}
+
+.cap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.body {
+  position: relative;
+  height: 78%;
+  width: 96%;
+  margin-inline: auto;
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(115deg, #26261f 0%, #171713 40%, #0c0c0a 70%, #1a1a16 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.sheen {
+  position: absolute;
+  inset: -20% -60%;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 46%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 54%,
+    transparent 70%
+  );
+  transform: translateX(-30%);
+  transition: transform var(--dur-glacial) var(--ease-enter);
+}
+
+.lit .sheen {
+  transform: translateX(20%);
+}
+
+.emboss {
+  position: relative;
+  width: 34%;
+  margin-top: 14%;
+}
+
+.emboss svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: auto;
+}
+
+.embossShadow {
+  color: rgba(0, 0, 0, 0.65);
+  transform: translate(0.6px, 1.1px);
+}
+
+.embossHighlight {
+  color: rgba(255, 255, 255, 0.14);
+  transform: translate(-0.6px, -0.6px);
+}
+
+.embossMark {
+  color: rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.label {
+  margin-top: auto;
+  margin-bottom: 12%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--bone);
+  text-align: center;
+}
+
+.brand {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-size: clamp(0.7rem, 1.6vw, 0.95rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.rule {
+  width: 22px;
+  height: 2px;
+  background: var(--oxblood);
+}
+
+.descriptor,
+.pack {
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(0.5rem, 1vw, 0.6rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen {
+    transition: none;
+  }
+}

@@ -1,0 +1,38 @@
+.section {
+  padding: clamp(96px, 16vh, 220px) 0;
+}
+
+.bone {
+  background: var(--bone);
+  color: var(--ink);
+}
+
+.ink {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.inner {
+  max-width: 1100px;
+}
+
+.headline {
+  margin-top: 20px;
+  font-size: var(--fs-display);
+}
+
+.line {
+  display: block;
+}
+
+.body {
+  margin-top: 32px;
+  max-width: 40ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ash);
+}
+
+.ink .body {
+  color: var(--steel);
+}

@@ -1,0 +1,32 @@
+.section {
+  height: 100svh;
+  min-height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+}
+
+.inner {
+  text-align: center;
+}
+
+.headline {
+  font-size: clamp(3.2rem, 12vw, 10rem);
+  color: var(--bone);
+}
+
+.accent {
+  color: var(--steel);
+  transition: color var(--dur-glacial) var(--ease-enter);
+}
+
+.inner:global(.is-visible) .accent {
+  color: var(--oxblood);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accent {
+    color: var(--oxblood);
+  }
+}
