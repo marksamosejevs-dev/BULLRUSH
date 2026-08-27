@@ -1,0 +1,39 @@
+.section {
+  background: var(--paper);
+  padding-block: clamp(80px, 14vh, 160px);
+}
+
+.head {
+  max-width: 760px;
+  padding-bottom: clamp(48px, 8vh, 88px);
+}
+
+.heading {
+  margin-top: 18px;
+  font-size: var(--fs-display);
+}
+
+.sub {
+  margin-top: 16px;
+  font-size: 1.1rem;
+  color: var(--ash);
+}
+
+.block {
+  padding-top: clamp(56px, 9vh, 100px);
+}
+
+.blockSplit {
+  padding-top: clamp(56px, 9vh, 100px);
+}
+
+.subHeading {
+  margin-top: 10px;
+  margin-bottom: clamp(28px, 4vh, 44px);
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  text-transform: uppercase;
+}

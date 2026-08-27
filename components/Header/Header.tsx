@@ -9,7 +9,7 @@ import styles from "./Header.module.css";
 const NAV = [
   { label: "DAILY", href: "#product" },
   { label: "STANDARD", href: "#standard" },
-  { label: "SCIENCE", href: "#evidence" },
+  { label: "SCIENCE", href: "#facts" },
   { label: "FAQ", href: "#faq" },
 ];
 

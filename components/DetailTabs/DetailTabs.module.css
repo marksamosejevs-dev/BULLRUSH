@@ -1,0 +1,163 @@
+.wrap {
+  border: 1px solid var(--line);
+}
+
+.tabStrip {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: 1 0 auto;
+  padding: 20px 24px;
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+}
+
+.tab[data-active="true"] {
+  color: var(--oxblood);
+  border-bottom-color: var(--oxblood);
+}
+
+.panel {
+  padding: clamp(24px, 4vw, 48px);
+  animation: panel-in var(--dur-base) var(--ease-enter);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
+
+.lead {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 60ch;
+  color: var(--ash);
+}
+
+.jump {
+  display: inline-block;
+  margin-top: 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  border-bottom: 1px solid currentColor;
+}
+
+.stageRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 700px) {
+  .stageRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stageCard {
+  padding: 20px;
+  border: 1px solid var(--line);
+}
+
+.stageDay {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  color: var(--oxblood);
+  letter-spacing: 0.06em;
+}
+
+.stageKicker {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+
+.stageBody {
+  margin-top: 10px;
+  color: var(--ash);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.closing {
+  margin-top: 28px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: 1.1rem;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.faqQ {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.faqA {
+  margin-top: 6px;
+  color: var(--ash);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.testGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 700px) {
+  .testGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.testLabel {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+}
+
+.testDetail {
+  margin-top: 8px;
+  color: var(--ash);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}

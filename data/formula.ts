@@ -9,11 +9,13 @@
  */
 
 export interface Ingredient {
-  index: string; // "01"
   name: string;
   dose: string;
   function: string;
   description: string;
+  /** Which marble surface this ingredient's imagery sits on in the showcase grid. */
+  surface: "ink" | "bone" | "graphite";
+  finish: "rough" | "cut" | "polished";
   evidenceUrl?: string;
 }
 

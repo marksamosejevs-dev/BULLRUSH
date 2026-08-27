@@ -8,17 +8,16 @@ import { CartDrawer } from "@/components/CartDrawer/CartDrawer";
 import { ConsistencyChart } from "@/components/ConsistencyChart/ConsistencyChart";
 import { ContextGallery } from "@/components/ContextGallery/ContextGallery";
 import { DailyStandard } from "@/components/DailyStandard/DailyStandard";
-import { EvidenceSection } from "@/components/EvidenceSection/EvidenceSection";
 import { FAQ } from "@/components/FAQ/FAQ";
 import { FinalCTA } from "@/components/FinalCTA/FinalCTA";
 import { Footer } from "@/components/Footer/Footer";
-import { FormulaExplorer } from "@/components/FormulaExplorer/FormulaExplorer";
 import { Header } from "@/components/Header/Header";
 import { Hero } from "@/components/Hero/Hero";
 import { HorizontalStory } from "@/components/HorizontalStory/HorizontalStory";
 import { MaterialInterlude } from "@/components/MaterialInterlude/MaterialInterlude";
 import { PerformanceSystem } from "@/components/PerformanceSystem/PerformanceSystem";
 import { ProblemNarrative } from "@/components/ProblemNarrative/ProblemNarrative";
+import { ProductDossier } from "@/components/ProductDossier/ProductDossier";
 import { ProductObject } from "@/components/ProductObject/ProductObject";
 import { ProductSystem } from "@/components/ProductSystem/ProductSystem";
 import { StickyBuyBar } from "@/components/StickyBuyBar/StickyBuyBar";
@@ -52,9 +51,7 @@ export default function Home() {
 
         <ContextGallery />
 
-        <FormulaExplorer />
-
-        <EvidenceSection />
+        <ProductDossier />
 
         <ProblemNarrative />
 

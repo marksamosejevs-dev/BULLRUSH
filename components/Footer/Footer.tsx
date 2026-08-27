@@ -8,7 +8,7 @@ const SHOP = [
 
 const BRAND = [
   { label: "THE STANDARD", href: "#standard" },
-  { label: "SCIENCE", href: "#evidence" },
+  { label: "SCIENCE", href: "#facts" },
   { label: "FAQ", href: "#faq" },
 ];
 

@@ -1,0 +1,259 @@
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- panel ---- */
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  background: #fff;
+  color: #0a0a0a;
+  border: 3px solid #0a0a0a;
+  padding: clamp(24px, 3vw, 40px);
+  box-shadow: 14px 14px 0 var(--graphite);
+}
+
+.expandHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  color: var(--ash);
+  background: transparent;
+}
+
+.expandHint:hover {
+  color: var(--oxblood);
+}
+
+/* ---- label typography ---- */
+
+.title {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.ruleThick {
+  height: 8px;
+  background: #0a0a0a;
+  margin: 14px 0;
+}
+
+.ruleThin {
+  height: 1px;
+  background: #0a0a0a;
+  margin: 4px 0 0;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #0a0a0a;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.headRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  padding-top: 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.18);
+  background: transparent;
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+.row:hover,
+.row[data-active="true"] {
+  background: rgba(110, 43, 43, 0.06);
+}
+
+.row[data-active="true"] .rowName {
+  color: var(--oxblood);
+}
+
+.rowName {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.rowValues {
+  display: flex;
+  gap: 24px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9rem;
+  min-width: 160px;
+  justify-content: flex-end;
+}
+
+.footnote {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  color: var(--ash);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ---- pending / holding state ---- */
+
+.pending {
+  padding: 8px 0 4px;
+}
+
+.pendingTitle {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.pendingRule {
+  height: 8px;
+  background: #0a0a0a;
+  margin: 14px 0 20px;
+}
+
+.pendingBody {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2a2a28;
+  max-width: 46ch;
+}
+
+.pendingMeta {
+  display: flex;
+  gap: 32px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #0a0a0a;
+}
+
+.pendingMeta dt {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.1em;
+  color: var(--ash);
+}
+
+.pendingMeta dd {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+/* ---- pedestal ---- */
+
+.pedestal {
+  position: relative;
+  height: 100%;
+  min-height: 380px;
+  overflow: hidden;
+}
+
+.pedestalMarble {
+  position: absolute;
+  inset: 0;
+}
+
+.media {
+  position: absolute;
+  inset: 10%;
+}
+
+.tag {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  z-index: 2;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.1em;
+  padding: 8px 14px;
+}
+
+/* ---- modal ---- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 9, 0.86);
+  border: 0;
+}
+
+.modalPanel {
+  position: relative;
+  z-index: 1;
+  width: min(680px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  color: #0a0a0a;
+  padding: clamp(28px, 4vw, 48px);
+  border: 3px solid #0a0a0a;
+}
+
+.modalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #0a0a0a;
+  border: 1px solid #0a0a0a;
+}

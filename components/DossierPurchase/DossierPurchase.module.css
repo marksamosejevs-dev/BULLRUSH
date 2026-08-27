@@ -1,0 +1,176 @@
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.stageMarble {
+  position: absolute;
+  inset: 0;
+}
+
+.stageShadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 6%;
+  height: 22%;
+  background: radial-gradient(50% 100% at 50% 50%, rgba(0, 0, 0, 0.55) 0%, transparent 75%);
+  z-index: 1;
+}
+
+.media {
+  position: absolute;
+  inset: 8%;
+  z-index: 2;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
+}
+
+.card {
+  padding: clamp(24px, 3vw, 40px);
+}
+
+.title {
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  margin-top: 8px;
+}
+
+.pack {
+  margin-top: 8px;
+  color: var(--ash);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.priceRow {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.price {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  font-size: 2rem;
+}
+
+.pricePending {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.95rem;
+  color: var(--ash);
+}
+
+.toggle {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.toggleOption {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  text-align: left;
+  transition: border-color var(--dur-fast) var(--ease-standard);
+}
+
+.toggleActive {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.save {
+  display: block;
+  margin-top: 4px;
+  color: var(--oxblood);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+}
+
+.toggleActive .save {
+  color: #e8a5a5;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.qtyLabel {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-small);
+  letter-spacing: 0.08em;
+  color: var(--ash);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--line);
+  padding: 8px 18px;
+}
+
+.stepper button {
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 20px;
+}
+
+.cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: var(--fs-small);
+  color: var(--ash);
+}
+
+.trustRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  color: var(--ash);
+}
+
+.trustItem svg {
+  width: 16px;
+  height: 16px;
+  color: var(--oxblood);
+}
