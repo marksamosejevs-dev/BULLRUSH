@@ -24,7 +24,7 @@ export interface ProductVariant {
 export const product = {
   name: "BULLRUSH DAILY",
   descriptor: "DAILY · PERFORMANCE",
-  packSize: "120 CAPSULES",
+  packSize: "150 CAPSULES",
   tagline: "One tool inside the system.",
   /** Set once pricing is finalized. Left null so nothing fabricated reaches the customer. */
   price: null as PriceInfo | null,

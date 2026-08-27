@@ -8,6 +8,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: 140px;
+  grid-auto-flow: dense;
   gap: 12px;
 }
 
@@ -54,10 +55,16 @@
 .tileName {
   font-family: var(--font-display), Archivo, sans-serif;
   font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 0.92rem;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
   text-transform: uppercase;
   color: var(--bone);
+}
+
+.tile[data-size="large"] .tileName,
+.tile[data-size="wide"] .tileName {
+  font-size: 1.3rem;
 }
 
 .tileDose {

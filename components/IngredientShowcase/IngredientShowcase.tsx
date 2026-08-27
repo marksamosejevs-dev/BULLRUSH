@@ -28,7 +28,7 @@ export function IngredientShowcase({ activeName, onSelectName }: IngredientShowc
                 type="button"
                 role="tab"
                 aria-selected={shown === ing.name}
-                data-size={i === 0 ? "large" : i === 3 ? "wide" : "normal"}
+                data-size={i === 0 || i === 6 ? "large" : i === 3 ? "wide" : "normal"}
                 className={styles.tile}
                 onMouseEnter={() => setHovered(ing.name)}
                 onMouseLeave={() => setHovered(null)}
