@@ -16,10 +16,45 @@
   }
 }
 
+.pedestal {
+  position: relative;
+  padding: clamp(20px, 4vw, 44px);
+}
+
+.pedestalMarble {
+  position: absolute;
+  inset: 0;
+}
+
 .media {
   position: relative;
+  z-index: 1;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  box-shadow: 0 40px 70px rgba(0, 0, 0, 0.35);
+}
+
+.tag {
+  position: absolute;
+  z-index: 2;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.tagPack {
+  top: clamp(8px, 2vw, 24px);
+  right: clamp(8px, 2vw, 24px);
+}
+
+.tagTrust {
+  bottom: clamp(8px, 2vw, 24px);
+  left: clamp(8px, 2vw, 24px);
+  background: var(--oxblood);
 }
 
 .card {
@@ -47,7 +82,7 @@
 
 .price {
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 300;
+  font-weight: 900;
   font-size: 2rem;
 }
 

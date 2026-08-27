@@ -1,13 +1,62 @@
 .section {
+  position: relative;
   height: 100svh;
   min-height: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--ink);
+  overflow: hidden;
+}
+
+.marbleLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+}
+
+.ghostWords {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  pointer-events: none;
+}
+
+.ghostWord {
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: clamp(2.5rem, 9vw, 7rem);
+  color: rgba(236, 233, 228, 0.05);
+  white-space: nowrap;
+  animation: ghost-drift 40s linear infinite;
+}
+
+.ghostWord:nth-child(2) {
+  animation-direction: reverse;
+  animation-duration: 52s;
+}
+
+.ghostWord:nth-child(3) {
+  animation-duration: 46s;
+}
+
+@keyframes ghost-drift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
 }
 
 .inner {
+  position: relative;
+  z-index: 1;
   text-align: center;
 }
 
@@ -28,5 +77,9 @@
 @media (prefers-reduced-motion: reduce) {
   .accent {
     color: var(--oxblood);
+  }
+
+  .ghostWord {
+    animation: none;
   }
 }

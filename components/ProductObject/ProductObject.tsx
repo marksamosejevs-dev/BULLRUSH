@@ -15,13 +15,11 @@ const PLATE_BY_KEY: Record<string, keyof typeof plates> = {
 };
 
 function MaterialRow({
-  index,
   label,
   copy,
   active,
   onActivate,
 }: {
-  index: number;
   label: string;
   copy: string;
   active: boolean;
@@ -37,7 +35,6 @@ function MaterialRow({
       onFocus={onActivate}
       aria-pressed={active}
     >
-      <span className={styles.rowIndex}>{String(index + 1).padStart(2, "0")}</span>
       <span className={styles.rowText}>
         <span className={styles.rowLabel}>{label}</span>
         <span className={styles.rowCopy}>{copy}</span>
@@ -72,7 +69,6 @@ export function ProductObject() {
           {product.materials.map((m, i) => (
             <MaterialRow
               key={m.key}
-              index={i}
               label={m.label}
               copy={m.copy}
               active={active === i}

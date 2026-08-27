@@ -63,6 +63,7 @@
 html {
   background: var(--ink);
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -112,21 +113,21 @@ h2,
 h3,
 h4 {
   font-family: var(--font-display), Archivo, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 300;
+  font-weight: 900;
   letter-spacing: -0.02em;
-  line-height: 0.98;
+  line-height: 0.94;
   text-transform: uppercase;
 }
 
 h1 {
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
 }
 
-/* "Card title" role — Archivo Medium, wide tracking. For headings that sit
-   inside a card or small UI chrome rather than reading as a display line. */
+/* "Card title" role — Archivo Bold, modest tracking. For headings that sit
+   inside a card or small UI chrome rather than reading as a full display line. */
 .card-title {
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
@@ -249,12 +250,13 @@ h1 {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
-  font-size: var(--fs-small);
-  letter-spacing: 0.1em;
+  gap: 14px;
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  padding: 16px 26px;
+  padding: 19px 32px;
   border-radius: var(--radius);
   transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
   white-space: nowrap;

@@ -35,7 +35,7 @@ interface TrustMarqueeProps {
 
 export function TrustMarquee({ variant = "ink" }: TrustMarqueeProps) {
   return (
-    <Marquee variant={variant} duration={30} ariaLabel="Verified production standards">
+    <Marquee variant={variant} duration={30} ariaLabel="Verified production standards" marble>
       {trustClaims.map((claim) => (
         <span key={claim.key} className={styles.item}>
           <span className={styles.icon} aria-hidden>

@@ -33,7 +33,7 @@ export function FormulaExplorer() {
                   className={[styles.indexItem, active === i ? styles.indexActive : ""].filter(Boolean).join(" ")}
                   onClick={() => setActive(i)}
                 >
-                  {ing.index}
+                  {ing.name}
                 </button>
               ))}
             </div>

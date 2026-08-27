@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Marble } from "@/components/Marble/Marble";
 import { timelineStages } from "@/data/timeline";
 import { useScrollY } from "@/lib/use-scroll-progress";
 import styles from "./Timeline.module.css";
@@ -32,18 +33,25 @@ export function Timeline() {
         </h2>
       </div>
 
-      <div className={`container ${styles.track}`}>
+      <div className={styles.track}>
         {timelineStages.map((stage, i) => {
-          const reached = progress >= i / (timelineStages.length - 1) - 0.05;
+          const reached = progress >= i / timelineStages.length + 0.06;
           return (
             <div key={stage.day} className={styles.stage} data-reached={reached}>
-              <span className={styles.marker} aria-hidden />
-              <span className={styles.day}>{stage.day}</span>
-              <span className={styles.label}>{stage.label}</span>
+              <div className={styles.marbleLayer} aria-hidden>
+                <Marble tone="graphite" finish={stage.finish} seed={i * 17 + 4} />
+              </div>
+              <div className={styles.stageContent}>
+                <span className={styles.day}>{stage.day}</span>
+                <span className={styles.kicker}>{stage.kicker}</span>
+                <p className={styles.body}>{stage.body}</p>
+              </div>
             </div>
           );
         })}
       </div>
+
+      <p className={`container ${styles.closing}`}>NOT A TRANSFORMATION. A STANDARD MAINTAINED.</p>
     </section>
   );
 }

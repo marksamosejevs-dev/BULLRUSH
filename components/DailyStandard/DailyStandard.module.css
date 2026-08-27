@@ -47,17 +47,10 @@
   }
 }
 
-.stepIndex {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-micro);
-  letter-spacing: 0.12em;
-  color: var(--oxblood);
-}
-
 .stepLabel {
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.7rem, 3.6vw, 2.5rem);
   text-transform: uppercase;
 }

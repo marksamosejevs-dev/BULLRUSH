@@ -1,11 +1,12 @@
 .section {
-  background: var(--paper);
+  background: var(--ink);
   padding-block: clamp(80px, 14vh, 160px);
 }
 
 .head {
   max-width: 720px;
   padding-bottom: clamp(48px, 8vh, 96px);
+  color: var(--bone);
 }
 
 .heading {
@@ -17,76 +18,85 @@
 .track {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
 }
 
-@media (min-width: 760px) {
+@media (min-width: 900px) {
   .track {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 .stage {
   position: relative;
+  min-height: 340px;
+  overflow: hidden;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 24px 0;
-  border-top: 2px solid var(--line);
+  align-items: flex-end;
+  border-top: 3px solid rgba(236, 233, 228, 0.16);
   transition: border-color var(--dur-slow) var(--ease-standard);
-}
-
-@media (min-width: 760px) {
-  .stage {
-    flex-direction: column;
-    gap: 14px;
-    padding-top: 24px;
-  }
 }
 
 .stage[data-reached="true"] {
   border-top-color: var(--oxblood);
 }
 
-.marker {
-  flex-shrink: 0;
-  width: 9px;
-  height: 9px;
-  margin-top: 2px;
-  border: 2px solid var(--line);
-  background: var(--paper);
-  transition: border-color var(--dur-slow) var(--ease-standard), background var(--dur-slow) var(--ease-standard);
+.marbleLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  filter: grayscale(1) brightness(0.6);
+  transition: opacity var(--dur-slow) var(--ease-standard), filter var(--dur-slow) var(--ease-standard);
 }
 
-.stage[data-reached="true"] .marker {
-  border-color: var(--oxblood);
-  background: var(--oxblood);
+.stage[data-reached="true"] .marbleLayer {
+  opacity: 0.85;
+  filter: none;
 }
 
-@media (min-width: 760px) {
-  .marker {
-    position: absolute;
-    top: -7px;
-    left: 0;
-    margin-top: 0;
-  }
+.stageContent {
+  position: relative;
+  z-index: 1;
+  padding: 32px clamp(20px, 4vw, 40px) 40px;
+  color: var(--bone);
 }
 
 .day {
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-micro);
+  font-size: 0.8rem;
   letter-spacing: 0.12em;
   color: var(--oxblood);
 }
 
-.label {
+.kicker {
   display: block;
-  margin-top: 4px;
+  margin-top: 10px;
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
   text-transform: uppercase;
-  max-width: 22ch;
+}
+
+.body {
+  margin-top: 16px;
+  max-width: 34ch;
+  color: var(--steel);
+  line-height: 1.6;
+}
+
+.stage[data-reached="true"] .body {
+  color: var(--bone);
+}
+
+.closing {
+  margin-top: clamp(56px, 9vh, 100px);
+  font-family: var(--font-display), Archivo, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.6rem, 3.6vw, 2.6rem);
+  color: var(--bone);
+  text-align: center;
+  max-width: 24ch;
+  margin-inline: auto;
+  text-transform: uppercase;
 }

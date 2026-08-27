@@ -1,5 +1,6 @@
 "use client";
 
+import { Marble } from "@/components/Marble/Marble";
 import { useReveal } from "@/lib/use-reveal";
 import styles from "./ProblemNarrative.module.css";
 
@@ -8,6 +9,10 @@ export function ProblemNarrative() {
 
   return (
     <section className={styles.section} aria-labelledby="problem-heading">
+      <div className={styles.marbleLayer} aria-hidden>
+        <Marble tone="graphite" finish="rough" seed={11} />
+        <div className={styles.scrim} />
+      </div>
       <div ref={ref} className={`container reveal ${styles.grid}`}>
         <div>
           <p className="eyebrow">THE PROBLEM</p>

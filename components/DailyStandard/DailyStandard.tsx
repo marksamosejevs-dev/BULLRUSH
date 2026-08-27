@@ -18,7 +18,6 @@ export function DailyStandard() {
         <ol className={styles.list}>
           {ritual.map((step) => (
             <li key={step.index} className={styles.step}>
-              <span className={styles.stepIndex}>{step.index}</span>
               <span className={styles.stepLabel}>{step.label}</span>
             </li>
           ))}

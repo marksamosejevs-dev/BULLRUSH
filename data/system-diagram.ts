@@ -20,5 +20,5 @@ export const systemNodes: SystemNode[] = [
   { key: "nutrition", label: "NUTRITION", copy: "Food as infrastructure. Simple, repeatable, unremarkable by design." },
   { key: "recover", label: "RECOVER", copy: "Built into the week, not bolted on after it breaks down." },
   { key: "focus", label: "FOCUS", copy: "One standard, held daily, instead of motivation renegotiated each morning." },
-  { key: "repeat", label: "REPEAT", copy: "The system only works if it runs again tomorrow, unchanged." },
+  { key: "consistency", label: "CONSISTENCY", copy: "The system only works if it runs again tomorrow, unchanged." },
 ];

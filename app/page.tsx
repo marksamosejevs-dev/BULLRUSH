@@ -15,6 +15,7 @@ import { Footer } from "@/components/Footer/Footer";
 import { FormulaExplorer } from "@/components/FormulaExplorer/FormulaExplorer";
 import { Header } from "@/components/Header/Header";
 import { Hero } from "@/components/Hero/Hero";
+import { HorizontalStory } from "@/components/HorizontalStory/HorizontalStory";
 import { MaterialInterlude } from "@/components/MaterialInterlude/MaterialInterlude";
 import { PerformanceSystem } from "@/components/PerformanceSystem/PerformanceSystem";
 import { ProblemNarrative } from "@/components/ProblemNarrative/ProblemNarrative";
@@ -56,6 +57,8 @@ export default function Home() {
         <EvidenceSection />
 
         <ProblemNarrative />
+
+        <HorizontalStory />
 
         <ConsistencyChart />
 

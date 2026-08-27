@@ -1,8 +1,20 @@
 .marquee {
+  position: relative;
   overflow: hidden;
   width: 100%;
   border-top: 1px solid rgba(236, 233, 228, 0.16);
   border-bottom: 1px solid rgba(236, 233, 228, 0.16);
+}
+
+.marbleLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.track {
+  position: relative;
+  z-index: 1;
 }
 
 .ink {

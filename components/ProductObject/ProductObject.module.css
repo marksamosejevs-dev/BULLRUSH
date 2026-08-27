@@ -57,14 +57,12 @@
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 20px;
+  display: block;
   width: 100%;
   text-align: left;
-  align-items: baseline;
   border-top: 1px solid rgba(236, 233, 228, 0.14);
-  padding-block: 28px;
+  border-left: 3px solid transparent;
+  padding: 28px 0 28px 20px;
   transition: border-color var(--dur-base) var(--ease-standard), padding-left var(--dur-base) var(--ease-standard);
 }
 
@@ -73,15 +71,8 @@
 }
 
 .rowActive {
-  border-top-color: var(--oxblood);
-  padding-left: 8px;
-}
-
-.rowIndex {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-micro);
-  letter-spacing: 0.12em;
-  color: var(--oxblood);
+  border-left-color: var(--oxblood);
+  padding-left: 32px;
 }
 
 .rowText {
@@ -92,10 +83,10 @@
 
 .rowLabel {
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
-  font-size: clamp(1.25rem, 2.6vw, 1.9rem);
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
 }
 
 .rowCopy {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Marble } from "@/components/Marble/Marble";
 import { systemNodePositions, systemNodes } from "@/data/system-diagram";
 import { useReveal } from "@/lib/use-reveal";
 import styles from "./PerformanceSystem.module.css";
@@ -12,6 +13,9 @@ export function PerformanceSystem() {
 
   return (
     <section className={styles.section} aria-labelledby="system-diagram-heading">
+      <div className={styles.marbleLayer} aria-hidden>
+        <Marble tone="ink" finish="cut" seed={19} />
+      </div>
       <div className={`container ${styles.head}`}>
         <p className="eyebrow">THE SYSTEM</p>
         <h2 id="system-diagram-heading" className={styles.heading}>
@@ -60,20 +64,16 @@ export function PerformanceSystem() {
         </div>
 
         <div className={styles.panel} aria-live="polite">
-          <span className={styles.panelIndex}>{String(active + 1).padStart(2, "0")}</span>
           <span className={styles.panelLabel}>{node?.label}</span>
           <p className={styles.panelCopy}>{node?.copy}</p>
         </div>
       </div>
 
       <div className={`container ${styles.mobileList}`}>
-        {systemNodes.map((n, i) => (
+        {systemNodes.map((n) => (
           <div key={n.key} className={styles.mobileItem}>
-            <span className={styles.mobileIndex}>{String(i + 1).padStart(2, "0")}</span>
-            <div>
-              <p className={styles.mobileLabel}>{n.label}</p>
-              <p className={styles.mobileCopy}>{n.copy}</p>
-            </div>
+            <p className={styles.mobileLabel}>{n.label}</p>
+            <p className={styles.mobileCopy}>{n.copy}</p>
           </div>
         ))}
       </div>

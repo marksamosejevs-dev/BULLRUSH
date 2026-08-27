@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Marble } from "@/components/Marble/Marble";
 import { Plate } from "@/components/Plate/Plate";
 import { product } from "@/data/product";
+import { trustClaims } from "@/data/trust";
 import { useCart, type PurchaseType } from "@/lib/cart-context";
 import { useReveal } from "@/lib/use-reveal";
 import styles from "./BuyModule.module.css";
@@ -34,8 +36,17 @@ export function BuyModule() {
   return (
     <section id="product" className={styles.section} aria-labelledby="buy-heading">
       <div ref={ref} className={`container reveal-scale ${styles.grid}`}>
-        <div className={styles.media}>
-          <Plate scene="lying" sizes="(min-width: 900px) 50vw, 100vw" />
+        <div className={styles.pedestal}>
+          <div className={styles.pedestalMarble} aria-hidden>
+            <Marble tone="graphite" finish="polished" seed={5} />
+          </div>
+          <div className={styles.media}>
+            <Plate scene="lying" sizes="(min-width: 900px) 46vw, 90vw" />
+          </div>
+          <span className={[styles.tag, styles.tagPack].join(" ")}>{product.packSize}</span>
+          <span className={[styles.tag, styles.tagTrust].join(" ")}>
+            {trustClaims[2]?.label} · {trustClaims[3]?.label}
+          </span>
         </div>
 
         <div className={styles.card}>

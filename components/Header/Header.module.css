@@ -48,7 +48,7 @@
 
 .logoWord {
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.14em;
 }
@@ -206,7 +206,7 @@
 
 .mobileLink {
   font-family: var(--font-display), Archivo, sans-serif;
-  font-weight: 300;
+  font-weight: 900;
   letter-spacing: -0.02em;
   font-size: 2.4rem;
   text-transform: uppercase;

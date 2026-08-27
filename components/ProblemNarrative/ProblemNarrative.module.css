@@ -1,7 +1,25 @@
 .section {
+  position: relative;
   background: var(--graphite);
   color: var(--bone);
   padding-block: clamp(80px, 14vh, 160px);
+  overflow: hidden;
+}
+
+.marbleLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17, 17, 16, 0.55) 0%, rgba(17, 17, 16, 0.75) 100%);
+}
+
+.grid {
+  position: relative;
+  z-index: 1;
 }
 
 .grid {

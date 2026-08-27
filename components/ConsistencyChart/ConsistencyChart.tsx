@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Marble } from "@/components/Marble/Marble";
 import { consistencyPoints } from "@/data/consistency-chart";
 import { useReveal } from "@/lib/use-reveal";
 import styles from "./ConsistencyChart.module.css";
@@ -28,6 +29,9 @@ export function ConsistencyChart() {
 
   return (
     <section className={styles.section} aria-labelledby="chart-heading">
+      <div className={styles.marbleLayer} aria-hidden>
+        <Marble tone="graphite" finish="cut" seed={27} />
+      </div>
       <div className={`container ${styles.head}`}>
         <p className="eyebrow">THE ROUTINE</p>
         <h2 id="chart-heading" className={styles.heading}>
