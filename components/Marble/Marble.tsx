@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import styles from "./Marble.module.css";
 
 type Tone = "bone" | "ink" | "graphite";
@@ -14,71 +13,81 @@ interface MarbleProps {
   children?: React.ReactNode;
 }
 
-const TONES: Record<Tone, { base: string; vein: string }> = {
-  bone: { base: "#e7e3db", vein: "#3a362f" },
-  ink: { base: "#111110", vein: "#c9c3b6" },
-  graphite: { base: "#211f1c", vein: "#a49d8e" },
-};
-
-const FINISHES: Record<Finish, { baseFreq: number; octaves: number; scale: number; veinCount: number; veinOpacity: number }> = {
-  rough: { baseFreq: 0.009, octaves: 5, scale: 46, veinCount: 8, veinOpacity: 0.32 },
-  cut: { baseFreq: 0.008, octaves: 5, scale: 38, veinCount: 9, veinOpacity: 0.28 },
-  polished: { baseFreq: 0.006, octaves: 5, scale: 26, veinCount: 12, veinOpacity: 0.2 },
-};
+interface Crop {
+  src: string;
+  position: string;
+  scale: number;
+  contrast: number;
+  brightness: number;
+  blur: number;
+  mirror?: boolean;
+}
 
 /**
- * Procedurally generated marble/stone field — no photography, no image
- * assets. A set of near-straight vein lines is warped by fractal-noise
- * displacement into organic marble veining, entirely as live SVG. Static
- * once painted (not re-computed on scroll), so cost is a one-time
- * rasterization rather than a per-frame one.
+ * BULLRUSH's one recognizable stone identity — every crop below is drawn
+ * from the same two real photographs used in the "BUILT IN SILENCE." /
+ * "STRENGTH WITH RESTRAINT." material interludes (public/images/geometry.jpg,
+ * public/images/empty-ledge.jpg): dark fractured rock against brushed
+ * black metal. No procedural texture, no unrelated marble. Variation
+ * comes only from crop, exposure and blur — never a different material.
  */
-export function Marble({ tone = "ink", finish = "polished", seed = 7, className, children }: MarbleProps) {
-  const rawId = useId().replace(/[^a-zA-Z0-9-]/g, "");
-  const filterId = `marble-filter-${rawId}`;
-  const colors = TONES[tone];
-  const cfg = FINISHES[finish];
+const CROPS: Record<Finish, Crop[]> = {
+  rough: [
+    { src: "/images/geometry.jpg", position: "82% 16%", scale: 1.35, contrast: 1.25, brightness: 0.82, blur: 0 },
+    { src: "/images/geometry.jpg", position: "48% 30%", scale: 1.05, contrast: 1.15, brightness: 0.88, blur: 0 },
+    { src: "/images/geometry.jpg", position: "92% 44%", scale: 2.15, contrast: 1.3, brightness: 0.78, blur: 0 },
+    { src: "/images/geometry.jpg", position: "70% 10%", scale: 1.3, contrast: 1.1, brightness: 0.88, blur: 5 },
+    { src: "/images/geometry.jpg", position: "82% 16%", scale: 1.35, contrast: 1.25, brightness: 0.82, blur: 0, mirror: true },
+  ],
+  cut: [
+    { src: "/images/empty-ledge.jpg", position: "50% 78%", scale: 1.25, contrast: 1.1, brightness: 0.92, blur: 0 },
+    { src: "/images/empty-ledge.jpg", position: "50% 58%", scale: 1.0, contrast: 1.05, brightness: 0.96, blur: 0 },
+    { src: "/images/empty-ledge.jpg", position: "26% 46%", scale: 1.55, contrast: 1.1, brightness: 0.9, blur: 0 },
+    { src: "/images/empty-ledge.jpg", position: "64% 28%", scale: 1.1, contrast: 1.35, brightness: 0.85, blur: 0 },
+    { src: "/images/empty-ledge.jpg", position: "50% 58%", scale: 1.0, contrast: 1.05, brightness: 0.96, blur: 0, mirror: true },
+  ],
+  polished: [
+    { src: "/images/geometry.jpg", position: "13% 76%", scale: 1.4, contrast: 0.95, brightness: 0.92, blur: 2 },
+    { src: "/images/geometry.jpg", position: "13% 76%", scale: 1.4, contrast: 0.95, brightness: 0.92, blur: 2, mirror: true },
+    { src: "/images/empty-ledge.jpg", position: "50% 18%", scale: 1.2, contrast: 0.85, brightness: 1.02, blur: 1 },
+    { src: "/images/geometry.jpg", position: "38% 62%", scale: 1.15, contrast: 0.8, brightness: 1.0, blur: 3 },
+  ],
+};
 
-  const veins = Array.from({ length: cfg.veinCount }, (_, i) => {
-    const t = i / (cfg.veinCount - 1 || 1);
-    const x1 = -10 + t * 120 + ((seed * (i + 1)) % 13) - 6;
-    const y1 = -10;
-    const x2 = x1 + 40 - ((seed * (i + 3)) % 40);
-    const y2 = 110;
-    const width = 0.3 + ((seed + i) % 5) * 0.35;
-    return { x1, y1, x2, y2, width };
-  });
+/** Exposure applied on top of a crop's own contrast/brightness, keyed by tone. */
+const TONE_EXPOSURE: Record<Tone, { brightness: number; contrast: number }> = {
+  ink: { brightness: 0.86, contrast: 1.02 },
+  graphite: { brightness: 1.04, contrast: 0.98 },
+  bone: { brightness: 2.0, contrast: 0.7 },
+};
+
+export function Marble({ tone = "ink", finish = "polished", seed = 7, className, children }: MarbleProps) {
+  const pool = CROPS[finish];
+  const crop = pool[Math.abs(seed) % pool.length]!;
+  const exposure = TONE_EXPOSURE[tone];
+  const brightness = crop.brightness * exposure.brightness;
+  const contrast = crop.contrast * exposure.contrast;
+  const filter = `grayscale(1) brightness(${brightness.toFixed(2)}) contrast(${contrast.toFixed(2)})${
+    crop.blur ? ` blur(${crop.blur}px)` : ""
+  }`;
+  // Zoom is expressed as a negative inset (rather than a CSS transform) so the
+  // masked hero reveal — which nests this inside its own transform and an SVG
+  // mask — has one fewer compositing layer to reconcile.
+  const insetPct = (((crop.scale - 1) / 2) * 100).toFixed(1);
 
   return (
     <div className={[styles.marble, className].filter(Boolean).join(" ")}>
-      <svg className={styles.svg} viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <defs>
-          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency={cfg.baseFreq}
-              numOctaves={cfg.octaves}
-              seed={seed}
-              result="noise"
-            />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale={cfg.scale} xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-        <rect x="-10" y="-10" width="120" height="120" fill={colors.base} />
-        <g filter={`url(#${filterId})`} stroke={colors.vein} strokeLinecap="round">
-          {veins.map((v, i) => (
-            <line
-              key={i}
-              x1={v.x1}
-              y1={v.y1}
-              x2={v.x2}
-              y2={v.y2}
-              strokeWidth={v.width}
-              opacity={cfg.veinOpacity}
-            />
-          ))}
-        </g>
-      </svg>
+      <div
+        className={styles.photo}
+        style={{
+          backgroundImage: `url(${crop.src})`,
+          backgroundPosition: crop.position,
+          inset: `-${insetPct}%`,
+          filter,
+          transform: crop.mirror ? "scaleX(-1)" : undefined,
+        }}
+      />
+      <div className={[styles.wash, styles[`wash${tone[0]!.toUpperCase()}${tone.slice(1)}`]].join(" ")} aria-hidden />
       {children && <div className={styles.content}>{children}</div>}
     </div>
   );

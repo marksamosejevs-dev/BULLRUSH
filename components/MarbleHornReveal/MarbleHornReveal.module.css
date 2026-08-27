@@ -24,7 +24,6 @@
 .marbleScale {
   position: absolute;
   inset: 0;
-  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {

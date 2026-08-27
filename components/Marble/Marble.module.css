@@ -3,13 +3,31 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #0a0a09;
 }
 
-.svg {
+.photo {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.wash {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+}
+
+.washInk {
+  background: radial-gradient(120% 130% at 50% 20%, transparent 40%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+.washGraphite {
+  background: radial-gradient(120% 130% at 50% 20%, transparent 45%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.washBone {
+  background: linear-gradient(180deg, rgba(244, 242, 238, 0.55) 0%, rgba(244, 242, 238, 0.72) 100%);
+  mix-blend-mode: multiply;
 }
 
 .content {

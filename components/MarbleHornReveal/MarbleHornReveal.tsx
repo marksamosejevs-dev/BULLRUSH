@@ -4,8 +4,17 @@ import { useId } from "react";
 import { Marble } from "@/components/Marble/Marble";
 import styles from "./MarbleHornReveal.module.css";
 
-const HORN_LEFT = "M 92,120 C 62,116 34,97 23,66 C 16,45 14,28 15,12 C 21,34 25,52 37,72 C 51,91 72,99 92,99 Z";
-const PENDANT = "M 93,96 L 107,96 L 103,128 L 97,128 Z";
+/**
+ * Horn-mark paths pre-normalized into the 0–1 objectBoundingBox space
+ * (source path coordinates divided by the original 200x140 viewBox).
+ * Kept in a single coordinate system — rather than nesting a CSS-pixel
+ * transform inside an SVG-unit rescale — to avoid the sub-pixel
+ * precision loss that produced a dithered mask edge under software
+ * rendering.
+ */
+const HORN_LEFT =
+  "M 0.46,0.857143 C 0.31,0.828571 0.17,0.692857 0.115,0.471429 C 0.08,0.321429 0.07,0.2 0.075,0.085714 C 0.105,0.242857 0.125,0.371429 0.185,0.514286 C 0.255,0.65 0.36,0.707143 0.46,0.707143 Z";
+const PENDANT = "M 0.465,0.685714 L 0.535,0.685714 L 0.515,0.914286 L 0.485,0.914286 Z";
 
 interface MarbleHornRevealProps {
   /** 0 (fully covering the hero) to 1 (fully revealed / gone). */
@@ -21,7 +30,10 @@ interface MarbleHornRevealProps {
 export function MarbleHornReveal({ progress }: MarbleHornRevealProps) {
   const rawId = useId().replace(/[^a-zA-Z0-9-]/g, "");
   const maskId = `horn-reveal-mask-${rawId}`;
-  const holeScale = 0.2 + progress * 6.5;
+  // A complex bezier mask rendered below ~0.6 of its natural size dithers under
+  // software rasterization (no GPU compositor) — keeping a floor here trades a
+  // touch of the smallest starting size for a mask that always rasterizes clean.
+  const holeScale = 0.85 + progress * 5.85;
   const opacity = Math.max(0, 1 - progress * 1.4);
 
   if (opacity <= 0) return null;
@@ -33,13 +45,11 @@ export function MarbleHornReveal({ progress }: MarbleHornRevealProps) {
           {/* objectBoundingBox units make the mask stretch to whatever box it's
               applied to, rather than rendering at its own intrinsic 200x140 size. */}
           <mask id={maskId} maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox" x="0" y="0" width="1" height="1">
-            <g transform="scale(0.005 0.0071428571)">
-              <rect x="0" y="0" width="200" height="140" fill="white" />
-              <g style={{ transform: `translate(100px, 70px) scale(${holeScale}) translate(-100px, -70px)` }} fill="black">
-                <path d={HORN_LEFT} />
-                <path d={HORN_LEFT} transform="translate(200,0) scale(-1,1)" />
-                <path d={PENDANT} />
-              </g>
+            <rect x="0" y="0" width="1" height="1" fill="white" />
+            <g transform={`translate(0.5 0.5) scale(${holeScale}) translate(-0.5 -0.5)`} fill="black">
+              <path d={HORN_LEFT} />
+              <path d={HORN_LEFT} transform="translate(1,0) scale(-1,1)" />
+              <path d={PENDANT} />
             </g>
           </mask>
         </defs>
