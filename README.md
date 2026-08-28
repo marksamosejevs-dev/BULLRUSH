@@ -88,14 +88,17 @@ discovery page for the dropshipping niche and active B2B sourcing listings
 
 ### 6. One real supplier result
 
-None — honestly. No supplier provider has real credentials in this
-environment, and I did not fabricate one. What I *did* verify: pointing
-the real CJ Dropshipping client at their actual API 2.0 endpoints with a
-deliberately invalid token returned a genuine `403 Forbidden` from
-`developers.cjdropshipping.com` (not a network failure) — confirming the
-endpoints/auth flow are wired correctly and the network path from a real
-deployment will reach them. Add a real `CJ_API_KEY` and click "Find
-Suppliers" on any opportunity to get a real result.
+None yet — honestly, and this needed a correction. A real `CJ_API_KEY` was
+provided, but this development sandbox's own outbound network policy
+blocks `developers.cjdropshipping.com` entirely (same allowlist policy
+that blocked Brave/Meta/Zendrop earlier). An earlier version of this
+report misread that block's `403 Forbidden` as a real response from CJ's
+API — it wasn't; the response body was literally "Host not in allowlist,"
+from this sandbox's proxy, not from CJ. That's a sandbox limitation, not
+an app bug: the code and the key are both plausibly fine, this environment
+just can't reach the host to prove it. The real test is one `npx tsx
+scripts/real-test-cj-live.ts` away on your own machine or once this app is
+deployed anywhere with normal outbound internet access.
 
 ### 7. Real landed cost if available
 

@@ -106,9 +106,13 @@ actually proven useful:
   schema types.
 - CJ's real endpoint paths/field names were confirmed via search-engine
   snippets of their official docs (this environment's network policy
-  blocks fetching the docs pages directly) and verified to reach the real
-  API in this session (see README's "what's actually working"). Re-verify
-  against a live account the first time real credentials are added.
+  blocks fetching the docs pages directly) but NOT verified against a
+  live account — this dev sandbox's own outbound network policy also
+  blocks `developers.cjdropshipping.com` itself, so a real `CJ_API_KEY`
+  could not be tested from here. Run `scripts/real-test-cj-live.ts` from
+  an environment with normal outbound internet access the first time
+  real credentials are added, and adjust `services/suppliers/providers/
+  cj/mapping.ts` if the actual response shape differs from what's coded.
 - Zendrop's MCP tool names are discovered dynamically at runtime rather
   than hardcoded (see `services/suppliers/providers/zendrop/mcpClient.ts`)
   because this environment couldn't fetch their tool reference either —
