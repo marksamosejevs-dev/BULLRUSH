@@ -7,8 +7,9 @@ import {
   OPPORTUNITY_STATUSES,
 } from "@/lib/state-machine";
 import { formatCurrency, formatPercent } from "@/lib/format";
-import { StatusBadge, RiskBadge, DemoBadge } from "./_components/Badge";
-import { transitionFromDashboard } from "./actions";
+import { StatusBadge, RiskBadge, DemoBadge, ProviderStatusBadge } from "./_components/Badge";
+import { transitionFromDashboard, runScoutAction } from "./actions";
+import { RESEARCH_PROVIDERS } from "@/services/research/registry";
 import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,37 @@ export default async function AdminDashboardPage({
         <Link href="/admin/opportunities/new" className={styles.newButton}>
           + New Opportunity
         </Link>
+      </div>
+
+      <div className={styles.scoutPanel}>
+        <div className={styles.scoutHeader}>
+          <span className={styles.scoutTitle}>Run Scout</span>
+          <span className={styles.scoutSubtitle}>
+            Searches every configured research provider for a real query and creates/updates real
+            opportunities (never demo data). See docs/ARCHITECTURE.md for what each source needs.
+          </span>
+        </div>
+        <form action={runScoutAction} className={styles.scoutForm}>
+          <input
+            type="text"
+            name="query"
+            required
+            placeholder="e.g. creatine gummies, portable mini thermal printer"
+            className={styles.scoutInput}
+          />
+          <button type="submit" className={styles.scoutButton}>
+            Run Scout
+          </button>
+        </form>
+        <div className={styles.scoutProviders}>
+          {RESEARCH_PROVIDERS.map((p) => (
+            <ProviderStatusBadge
+              key={p.key}
+              label={p.label}
+              status={p.isConfigured() ? "CONNECTED" : "NOT_CONFIGURED"}
+            />
+          ))}
+        </div>
       </div>
 
       <div className={styles.filters}>
@@ -100,7 +132,14 @@ export default async function AdminDashboardPage({
                       </div>
                     </td>
                     <td>{opp.category}</td>
-                    <td className={styles.score}>{opp.overallScore.toFixed(1)}</td>
+                    <td>
+                      <div className={styles.score}>{opp.overallScore.toFixed(1)}</div>
+                      {opp.recommendedAction && (
+                        <div className={styles.recommendedAction} title={opp.recommendedActionReason ?? undefined}>
+                          {opp.recommendedAction}
+                        </div>
+                      )}
+                    </td>
                     <td className={styles.trend} title={opp.trendSignal}>
                       {opp.trendSignal}
                     </td>

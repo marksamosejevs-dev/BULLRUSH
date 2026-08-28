@@ -26,6 +26,7 @@ export default function NewOpportunityPage() {
           source: "Manual entry",
           trendSignal: "",
           trendEvidence: "",
+          riskCategory: "UNKNOWN",
           scoreTrendVelocity: 5,
           scoreCreativePotential: 5,
           scoreMarginPotential: 5,

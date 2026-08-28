@@ -12,6 +12,7 @@ export type OpportunityStatus =
   | "REJECTED"
   | "APPROVED_FOR_TEST"
   | "SOURCING"
+  | "COMPLIANCE_REQUIRED"
   | "READY_TO_BUILD"
   | "BUILDING"
   | "READY_FOR_REVIEW"
@@ -26,6 +27,7 @@ export const OPPORTUNITY_STATUSES: OpportunityStatus[] = [
   "REJECTED",
   "APPROVED_FOR_TEST",
   "SOURCING",
+  "COMPLIANCE_REQUIRED",
   "READY_TO_BUILD",
   "BUILDING",
   "READY_FOR_REVIEW",
@@ -41,7 +43,10 @@ const TRANSITIONS: Record<OpportunityStatus, OpportunityStatus[]> = {
   WATCH: ["VALIDATING", "REJECTED", "APPROVED_FOR_TEST"],
   REJECTED: [],
   APPROVED_FOR_TEST: ["SOURCING", "REJECTED"],
-  SOURCING: ["READY_TO_BUILD", "REJECTED"],
+  // A validation supplier being selected (Part 12/16) decides which of
+  // these two the opportunity moves to — see lib/compliance.ts.
+  SOURCING: ["READY_TO_BUILD", "COMPLIANCE_REQUIRED", "REJECTED"],
+  COMPLIANCE_REQUIRED: ["READY_TO_BUILD", "REJECTED"],
   READY_TO_BUILD: ["BUILDING"],
   BUILDING: ["READY_FOR_REVIEW"],
   READY_FOR_REVIEW: ["LIVE", "BUILDING"],
@@ -74,6 +79,7 @@ export const STATUS_LABELS: Record<OpportunityStatus, string> = {
   REJECTED: "Rejected",
   APPROVED_FOR_TEST: "Approved for Test",
   SOURCING: "Sourcing",
+  COMPLIANCE_REQUIRED: "Compliance Review Required",
   READY_TO_BUILD: "Ready to Build",
   BUILDING: "Building",
   READY_FOR_REVIEW: "Ready for Review",
@@ -92,6 +98,7 @@ export const STATUS_TONE: Record<OpportunityStatus, StatusTone> = {
   REJECTED: "negative",
   APPROVED_FOR_TEST: "positive",
   SOURCING: "info",
+  COMPLIANCE_REQUIRED: "warning",
   READY_TO_BUILD: "info",
   BUILDING: "info",
   READY_FOR_REVIEW: "positive",

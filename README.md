@@ -23,64 +23,106 @@ npm run dev
 
 Visit `/` for the public site and `/admin` for the internal dashboard.
 
-## Internal Product Agent (`/admin`) — Phase 1
+## Internal Product Agent (`/admin`) — Phase 1 + Phase 2
 
-**What's actually working:**
+Phase 1 built the foundation (data model, economics calculator, scoring
+system, state machine, dashboard). Phase 2 connected it to real external
+data: a query-directed Scout that does real web/ad-library/storefront
+research, a Validator that scores from that real evidence, and real
+supplier sourcing (CJ Dropshipping + Zendrop) with real US shipping quotes
+and a compliance gate for regulated products. See `docs/ARCHITECTURE.md`
+for how it fits together and `docs/NEXT_STEPS.md` for Phase 3.
 
-- Full data model: `ProductOpportunity`, `Product`, `Supplier`,
-  `SupplierQuote`, `BrandConcept`, `Creative`, `Approval`, `JobRun`
-  (`prisma/schema.prisma`).
-- Product economics calculator (`lib/economics.ts`): landed cost, gross
-  profit, gross margin %, contribution margin, break-even CPA, break-even
-  ROAS — computed live from the numbers you enter.
-- Product scoring system (`lib/scoring.ts`): nine weighted 0–10
-  dimensions → one overall score and a derived risk level.
-- Product test state machine (`lib/state-machine.ts`) enforced on every
-  status change: `DISCOVERED → VALIDATING → WATCH/REJECTED/APPROVED_FOR_TEST
-  → SOURCING → READY_TO_BUILD → BUILDING → READY_FOR_REVIEW → LIVE ⇄ PAUSED`,
-  with `ARCHIVED` reachable from any non-terminal state.
-- Approving an opportunity for test automatically creates its `Product`
-  record — the milestone the brief asked for.
-- Approval workflow for every billable/external action (`BUY_DOMAIN`,
-  `ORDER_SAMPLE`, `PUBLISH_PRODUCT`, `LAUNCH_META`, `LAUNCH_TIKTOK`,
-  `INCREASE_BUDGET`, `ORDER_INVENTORY`) — requesting or deciding an
-  approval only changes its status, it never executes the action.
-- Admin dashboard at `/admin`: opportunity list with score/margin/risk/
-  status, status filter, quick actions (Approve test / Watch / Reject).
-- Opportunity detail page: full scoring breakdown, live economics, status
-  transition buttons, an edit form, and manual-entry panels for suppliers,
-  brand concepts, creatives, and approvals.
-- "New Opportunity" form for manual entry.
+### 1. What real data sources work
 
-**What's mock / demo data:**
+- **Web Search (Brave)**, **Meta Ad Library**, and **Competitor
+  Storefronts** (public Shopify `/products.json` feeds) are real,
+  finished integrations — set their env vars and they work.
+- **CJ Dropshipping** (official API 2.0) and **Zendrop** (official MCP
+  server) are real, finished sourcing integrations — same story.
+- Google Trends, TikTok Shop, and Amazon Marketplace have no accessible
+  self-serve API for this use case (see `.env.example` for why each one
+  specifically) and stay `NOT_CONFIGURED`, same for HyperSKU and
+  AliExpress on the sourcing side.
 
-- The three seeded opportunities (Creatine Gummies, Magnesium Recovery
-  Complex, Men's Performance Gummies) are illustrative examples only,
-  flagged `isDemoData: true` and visibly badged "Demo data" in the UI.
-  Every "trend" note on them says explicitly that it's a placeholder, not
-  real market research.
-- All scoring and economics numbers are entered by a human (or the seed
-  script) — there is no live trend/market data feed yet.
+### 2. Which providers are connected (in this environment, right now)
 
-**What needs API credentials (none of this runs in Phase 1):**
+None. This session has zero API credentials configured for any provider —
+every research and supplier source reports `NOT_CONFIGURED` on the
+dashboard and opportunity detail page.
 
-- Shopify Admin API (`SHOPIFY_STORE_DOMAIN`, `SHOPIFY_ADMIN_API_ACCESS_TOKEN`)
-  — `services/shopify`
-- A domain registrar API (`DOMAIN_REGISTRAR_API_KEY`) — `services/domains`
-- A supplier sourcing data source (`SUPPLIER_SOURCING_API_KEY`) —
-  `services/suppliers`
-- An image generation API (`IMAGE_GENERATION_API_KEY`) — `services/images`
-- Meta Marketing API (`META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID`) —
-  `services/meta`
-- TikTok Marketing API (`TIKTOK_ACCESS_TOKEN`, `TIKTOK_ADVERTISER_ID`) —
-  `services/tiktok`
+### 3. Which providers are not configured
 
-Every one of these is checked via `lib/env.ts` and returns an explicit
-`NOT_CONFIGURED` result rather than pretending to work. See
-`.env.example` for the full list.
+All of them — see #2. The dashboard's Run Scout panel and each
+opportunity's Sourcing panel show a live status badge (`CONNECTED` /
+`NOT_CONFIGURED` / `ERROR`) per provider so this is never ambiguous.
 
-**What we should build next:** see `docs/NEXT_STEPS.md` — Phase 2 is a
-real Scout agent and real supplier sourcing.
+### 4. What API keys / accounts you need
+
+| Provider | What you need | Env vars |
+|---|---|---|
+| Web Search | Brave Search API key (has a free tier) | `BRAVE_SEARCH_API_KEY` |
+| Meta Ad Library | A Graph API access token with Ad Library access | `META_AD_LIBRARY_ACCESS_TOKEN` |
+| Competitor Storefronts | Nothing — just list domains you want checked | `COMPETITOR_STORE_DOMAINS` |
+| CJ Dropshipping | A CJ account + API key from your CJ dashboard | `CJ_API_KEY` or `CJ_ACCESS_TOKEN` |
+| Zendrop | A Zendrop account + API key (Settings → API) | `ZENDROP_API_KEY` |
+| HyperSKU | Contact HyperSKU's integration team (no self-serve API) | — |
+| AliExpress | An approved Open Platform Dropshipping application | — |
+
+Full list with comments: `.env.example`.
+
+### 5. One real product search result
+
+I couldn't get a real Scout run to search anything live — this sandbox has
+no provider credentials configured, and this session's outbound network
+policy also blocks the actual provider hosts (`api.search.brave.com`,
+`graph.facebook.com`, `app.zendrop.com` all returned "Host not in
+allowlist" when I tested with placeholder credentials — see
+`docs/NEXT_STEPS.md`). So instead of faking a result, I used my own
+web research (not the app) to find one real, current product and entered
+it as a real (non-demo) opportunity with real sources:
+**"Portable Mini Thermal Printer"** — evidence includes TikTok's live
+discovery page for the dropshipping niche and active B2B sourcing listings
+(Alibaba, Doba). Script: `scripts/real-test-part17.ts`. Open it at
+`/admin/opportunities/<id>` after seeding, or re-run the script yourself.
+
+### 6. One real supplier result
+
+None — honestly. No supplier provider has real credentials in this
+environment, and I did not fabricate one. What I *did* verify: pointing
+the real CJ Dropshipping client at their actual API 2.0 endpoints with a
+deliberately invalid token returned a genuine `403 Forbidden` from
+`developers.cjdropshipping.com` (not a network failure) — confirming the
+endpoints/auth flow are wired correctly and the network path from a real
+deployment will reach them. Add a real `CJ_API_KEY` and click "Find
+Suppliers" on any opportunity to get a real result.
+
+### 7. Real landed cost if available
+
+Not available for the reason above — no real supplier quote exists yet.
+The math itself (`lib/economics.ts`, `SupplierQuote.landedCost =
+unitCost + usShippingCost`) is implemented, tested, and will produce a
+real number the moment a real quote exists.
+
+### 8. What is still mock
+
+- The three seeded demo opportunities (Creatine Gummies, Magnesium
+  Recovery Complex, Men's Performance Gummies) — flagged `isDemoData:
+  true`, badged "Demo data" everywhere in the UI.
+- Manually-entered scores/economics on opportunities created via the "New
+  Opportunity" form (same as Phase 1 — nothing new here is mocked, it's
+  just not evidence-backed until you run the Validator against real
+  evidence).
+
+Nothing else is mocked: every provider either does real work or says
+`NOT_CONFIGURED`/`ERROR` — never a fabricated result.
+
+### 9. What we build in Phase 3
+
+Domain checks/purchasing, Shopify draft creation, Brand/Creative agents,
+and (much later, after Approval) Meta/TikTok campaign launch. Full
+reasoning in `docs/NEXT_STEPS.md`. **Not started automatically** — this is
+a deliberate stop point per the brief.
 
 ---
 

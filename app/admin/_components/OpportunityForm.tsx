@@ -1,4 +1,5 @@
 import { SCORE_DIMENSION_ORDER, SCORE_DIMENSION_LABELS } from "@/lib/scoring";
+import { RISK_CATEGORIES } from "@/lib/compliance";
 import styles from "./Form.module.css";
 
 export interface OpportunityFormValues {
@@ -8,6 +9,7 @@ export interface OpportunityFormValues {
   source: string;
   trendSignal: string;
   trendEvidence: string;
+  riskCategory: string;
   scoreTrendVelocity: number;
   scoreCreativePotential: number;
   scoreMarginPotential: number;
@@ -81,6 +83,15 @@ export function OpportunityForm({
           </div>
           <Field label="Trend signal (short)">
             <input className={styles.input} name="trendSignal" defaultValue={defaultValues.trendSignal} required />
+          </Field>
+          <Field label="Risk category (compliance gate)">
+            <select className={styles.select} name="riskCategory" defaultValue={defaultValues.riskCategory}>
+              {RISK_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </Field>
           <div className={`${styles.field} ${styles.fieldWide}`}>
             <label className={styles.label}>Trend evidence (notes)</label>

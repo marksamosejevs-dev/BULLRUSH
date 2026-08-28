@@ -26,6 +26,10 @@ enum OpportunityStatus {
   REJECTED
   APPROVED_FOR_TEST
   SOURCING
+  // A real supplier was found, but the product's risk category requires a
+  // human compliance review before it can proceed — see Product's
+  // compliance fields. Never entered automatically as "cleared."
+  COMPLIANCE_REQUIRED
   READY_TO_BUILD
   BUILDING
   READY_FOR_REVIEW
@@ -39,6 +43,25 @@ enum RiskLevel {
   LOW
   MEDIUM
   HIGH
+}
+
+// What kind of product this is, for the compliance gate (Part 14). Assigned
+// by a human — never inferred from seller marketing text.
+enum RiskCategory {
+  UNKNOWN
+  STANDARD
+  COSMETIC
+  INGESTIBLE
+  SUPPLEMENT
+  MEDICAL_DEVICE
+  REGULATED
+}
+
+enum ComplianceStatus {
+  NOT_REQUIRED
+  REQUIRED
+  IN_REVIEW
+  CLEARED
 }
 
 enum SupplierStatus {
@@ -104,15 +127,34 @@ model ProductOpportunity {
   name        String
   category    String
   description String
-  source      String // e.g. "Manual entry", "TikTok ads library" — freeform until Scout agent exists
+  source      String // e.g. "Manual entry", "Web Search (Brave)", "Meta Ad Library"
+  sourceUrl   String? // link to where this was discovered, when one exists
   status      OpportunityStatus @default(DISCOVERED)
 
   // Demo/seed data must always be flagged so it's never mistaken for a
   // real researched opportunity.
   isDemoData Boolean @default(false)
 
-  // Trend evidence is a plain-text note, not a live data feed, until the
-  // Scout agent (Phase 2) is wired up.
+  market String @default("US")
+
+  // Canonical product identity across sources (lib/normalize.ts) — lets the
+  // Scout avoid creating duplicate opportunities for the same product
+  // described differently by different sources.
+  normalizedName String?
+  aliases        String[] @default([]) // raw names as seen per source, never discarded
+
+  firstSeenAt DateTime? // earliest evidence timestamp across all sources
+  lastSeenAt  DateTime? // most recent evidence timestamp
+
+  // Overall discovery confidence (0-1), set by the Scout from how much real
+  // evidence backs the opportunity. Null for hand-entered opportunities.
+  confidence Float?
+
+  riskCategory RiskCategory @default(UNKNOWN) // drives the compliance gate — see Product
+
+  // Trend evidence is a plain-text note for manual entry. Opportunities
+  // created by the Scout also populate the structured TrendEvidence rows
+  // below, which retain source/URL/date/confidence per data point.
   trendSignal   String
   trendEvidence String?
 
@@ -127,28 +169,63 @@ model ProductOpportunity {
   scoreRegulatoryRisk        Float
   scoreBrandability          Float
 
+  // Per-dimension {score, reason, evidence, confidence} when scored by the
+  // real Validator (lib/validator.ts). Null for hand-entered opportunities,
+  // which only have the bare numeric scores above.
+  scoreDetails Json?
+
   // Denormalized/stored results of lib/scoring.ts, recomputed on every save.
   overallScore Float
   riskLevel    RiskLevel @default(UNKNOWN)
 
-  // --- Economics inputs (see lib/economics.ts) ---
-  sellingPrice   Float // suggested retail price, USD
-  cogs           Float // unit product cost
-  shippingCost   Float // US shipping cost, per unit
-  packagingCost  Float @default(0)
-  paymentFeePct  Float @default(2.9) // payment processor fee, % of selling price
-  discountPct    Float @default(0) // typical discount/offer, % of selling price
-  refundRatePct  Float @default(0) // assumed refund rate, % of orders
+  // Validator's suggestion only — never applied automatically. A human
+  // still has to click Approve/Watch/Reject.
+  recommendedAction       String? // "TEST" | "WATCH" | "REJECT"
+  recommendedActionReason String?
 
-  suppliers     SupplierQuote[]
-  product       Product?
-  brandConcepts BrandConcept[]
-  creatives     Creative[]
-  approvals     Approval[]
-  jobRuns       JobRun[]
+  // --- Economics inputs (see lib/economics.ts) ---
+  sellingPrice  Float // suggested retail price, USD
+  cogs          Float // unit product cost
+  shippingCost  Float // US shipping cost, per unit
+  packagingCost Float @default(0)
+  paymentFeePct Float @default(2.9) // payment processor fee, % of selling price
+  discountPct   Float @default(0) // typical discount/offer, % of selling price
+  refundRatePct Float @default(0) // assumed refund rate, % of orders
+
+  suppliers          SupplierQuote[]
+  product            Product?
+  brandConcepts      BrandConcept[]
+  creatives          Creative[]
+  approvals          Approval[]
+  jobRuns            JobRun[]
+  trendEvidenceItems TrendEvidence[]
 
   @@index([status])
   @@index([isDemoData])
+  @@index([normalizedName])
+}
+
+// One real, sourced data point behind an opportunity. Every row here is
+// either a real fetched metric (metricValue set) or qualitative evidence
+// (metricValue null) — never invented. See services/research.
+model TrendEvidence {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String
+
+  label       String // e.g. "Active Meta advertisers", "Search results volume"
+  description String // qualitative narrative — always present
+  metricValue Float? // only when a real number was returned by the source
+  metricUnit  String? // e.g. "advertisers", "results"
+
+  source     String // provider label, e.g. "Meta Ad Library", "Web Search (Brave)"
+  url        String?
+  observedAt DateTime
+  confidence Float // 0-1, set by the provider that produced this evidence
+
+  @@index([opportunityId])
 }
 
 model Supplier {
@@ -188,12 +265,46 @@ model SupplierQuote {
   supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   supplierId String
 
-  unitCost              Float?
-  usShippingCost        Float?
-  estimatedDeliveryDays Int?
-  moq                   Int?
-  isRecommended         Boolean @default(false)
-  notes                 String?
+  // Which provider produced this quote, and how to look the listing back up
+  // there. "MANUAL" for hand-entered quotes (Phase 1 behavior, unchanged).
+  providerKey       String  @default("MANUAL") // "CJ" | "ZENDROP" | "HYPERSKU" | "ALIEXPRESS" | "MANUAL"
+  externalProductId String?
+  externalVariantId String?
+  variantName       String?
+  productUrl        String?
+  imageUrl          String?
+
+  unitCost                 Float?
+  usShippingCost           Float?
+  landedCost               Float? // unitCost + usShippingCost, snapshotted at quote time
+  shippingMethod           String?
+  warehouse                String?
+  quoteCurrency            String    @default("USD")
+  quoteDate                DateTime?
+  estimatedDeliveryDays    Int? // single estimate (manual entry)
+  estimatedDeliveryDaysMin Int? // range (real provider quotes)
+  estimatedDeliveryDaysMax Int?
+  moq                      Int?
+  notes                    String?
+
+  // --- Supplier match score (Part 9 of the brief), each component nullable
+  // until real data exists — unknown data never boosts the score. ---
+  matchScore                 Float? // 0-20 product/query relevance
+  usDeliveryScore            Float? // 0-20
+  landedCostScore            Float? // 0-15
+  reliabilityScore           Float? // 0-15
+  fulfillmentAutomationScore Float? // 0-10
+  privateLabelScore          Float? // 0-10
+  moqFlexibilityScore        Float? // 0-5
+  dataConfidenceScore        Float? // 0-5
+  totalScore                 Float? // sum of the above, 0-100
+  confidence                 Float? // 0-1 overall data confidence for this quote
+
+  isSystemRecommended     Boolean @default(false) // the matching engine's "Best for validation" pick
+  isSelectedForValidation Boolean @default(false) // explicit human "Select as validation supplier"
+
+  rawResponse Json? // raw provider payload, kept for audit/debugging
+  product     Product?
 
   @@index([opportunityId])
   @@index([supplierId])
@@ -226,11 +337,11 @@ model Creative {
   opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   opportunityId String
 
-  type    CreativeType
-  title   String
-  content String? // script / brief text
+  type     CreativeType
+  title    String
+  content  String? // script / brief text
   assetUrl String? // populated once /services/images exists
-  status  CreativeStatus @default(NOT_CONFIGURED)
+  status   CreativeStatus @default(NOT_CONFIGURED)
 
   @@index([opportunityId])
 }
@@ -268,13 +379,16 @@ model JobRun {
   opportunity   ProductOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   opportunityId String?
 
-  agent        String // "scout" | "validator" | "sourcing" | "brand" | "creative" | ...
-  status       JobRunStatus @default(NOT_CONFIGURED)
-  input        Json?
-  output       Json?
-  errorMessage String?
-  startedAt    DateTime?
-  finishedAt   DateTime?
+  agent          String // "SCOUT_PRODUCTS" | "VALIDATE_PRODUCT" | "SOURCE_PRODUCT" | "GET_SHIPPING_QUOTES" | ...
+  provider       String? // which research/supplier provider this run used, if any
+  status         JobRunStatus @default(NOT_CONFIGURED)
+  input          Json?
+  output         Json?
+  itemsProcessed Int?
+  summary        String?
+  errorMessage   String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
 
   @@index([opportunityId])
   @@index([agent])
@@ -299,5 +413,32 @@ model Product {
   landingPageUrl String?
 
   shopifyProductId String? // null until /services/shopify is configured
-  shopifyStatus     String  @default("NOT_CONFIGURED")
+  shopifyStatus    String  @default("NOT_CONFIGURED")
+
+  // The supplier/variant chosen for validation (Part 12/13) — persisted,
+  // never auto-selected into an order.
+  selectedSupplierQuote   SupplierQuote? @relation(fields: [selectedSupplierQuoteId], references: [id])
+  selectedSupplierQuoteId String?        @unique
+
+  // --- Compliance gate (Part 14) ---
+  // riskCategory is copied from the opportunity when the Product is
+  // created; complianceStatus starts REQUIRED for anything but STANDARD/
+  // UNKNOWN and can only move to CLEARED by an explicit human review.
+  riskCategory     RiskCategory     @default(UNKNOWN)
+  complianceStatus ComplianceStatus @default(NOT_REQUIRED)
+
+  // Placeholders for later verification — never inferred from seller
+  // marketing text, never implying FDA approval.
+  ingredients          String?
+  manufacturer         String?
+  manufacturingCountry String?
+  coaUrl               String? // Certificate of Analysis
+  gmpCertified         Boolean?
+  testingDocumentsUrl  String?
+  labelingReviewStatus String    @default("NOT_STARTED")
+  fdaRelevantStatus    String    @default("NOT_REVIEWED")
+  claimsReviewStatus   String    @default("NOT_STARTED")
+  complianceNotes      String?
+  complianceReviewedBy String?
+  complianceReviewedAt DateTime?
 }

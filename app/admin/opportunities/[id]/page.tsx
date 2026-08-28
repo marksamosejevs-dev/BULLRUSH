@@ -1,26 +1,42 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { calculateEconomics } from "@/lib/economics";
+import { calculateEconomics, suggestPricingScenarios } from "@/lib/economics";
 import {
   SCORE_DIMENSION_ORDER,
   SCORE_DIMENSION_LABELS,
+  ScoreDimension,
 } from "@/lib/scoring";
 import { getAllowedTransitions, OpportunityStatus, STATUS_LABELS } from "@/lib/state-machine";
+import { RISK_CATEGORIES, requiresComplianceReview, RiskCategory } from "@/lib/compliance";
+import { ScoreDetails } from "@/lib/validator";
 import { formatCurrency, formatPercent, formatMultiplier, formatDate } from "@/lib/format";
-import { StatusBadge, RiskBadge, DemoBadge, ApprovalStatusBadge } from "@/app/admin/_components/Badge";
+import {
+  StatusBadge,
+  RiskBadge,
+  DemoBadge,
+  ApprovalStatusBadge,
+  ProviderStatusBadge,
+  RecommendedActionBadge,
+} from "@/app/admin/_components/Badge";
 import { OpportunityForm, OpportunityFormValues } from "@/app/admin/_components/OpportunityForm";
 import {
   transitionFromDetail,
   updateOpportunity,
   addSupplierQuote,
-  setRecommendedSupplierQuote,
+  selectValidationSupplierQuote,
   addBrandConcept,
   selectBrandConcept,
   addCreative,
   requestApproval,
   decideApproval,
+  runSourcingAction,
+  rerunValidatorAction,
+  updateComplianceDetails,
+  clearCompliance,
+  reopenCompliance,
 } from "@/app/admin/actions";
+import { SUPPLIER_PROVIDERS } from "@/services/suppliers/registry";
 import formStyles from "@/app/admin/_components/Form.module.css";
 import styles from "./detail.module.css";
 
@@ -47,11 +63,15 @@ export default async function OpportunityDetailPage({
   const opportunity = await prisma.productOpportunity.findUnique({
     where: { id },
     include: {
-      suppliers: { include: { supplier: true }, orderBy: { createdAt: "asc" } },
+      suppliers: {
+        include: { supplier: true },
+        orderBy: [{ isSelectedForValidation: "desc" }, { isSystemRecommended: "desc" }, { totalScore: "desc" }],
+      },
       brandConcepts: { orderBy: { createdAt: "asc" } },
       creatives: { orderBy: { createdAt: "asc" } },
       approvals: { orderBy: { createdAt: "desc" } },
       jobRuns: { orderBy: { createdAt: "desc" } },
+      trendEvidenceItems: { orderBy: { observedAt: "desc" } },
       product: true,
     },
   });
@@ -59,10 +79,30 @@ export default async function OpportunityDetailPage({
   if (!opportunity) notFound();
 
   const allSuppliers = await prisma.supplier.findMany({ orderBy: { name: "asc" } });
+  const supplierProviderStatuses = await Promise.all(
+    SUPPLIER_PROVIDERS.map(async (p) => ({ key: p.key, label: p.label, status: await p.status() })),
+  );
 
   const econ = calculateEconomics(opportunity);
   const status = opportunity.status as OpportunityStatus;
   const allowedTransitions = getAllowedTransitions(status);
+  const scoreDetails = opportunity.scoreDetails as ScoreDetails | null;
+
+  const referenceQuote =
+    opportunity.suppliers.find((q) => q.isSelectedForValidation) ??
+    opportunity.suppliers.find((q) => q.isSystemRecommended) ??
+    null;
+  const pricingScenarios =
+    referenceQuote && referenceQuote.unitCost !== null && referenceQuote.usShippingCost !== null
+      ? suggestPricingScenarios({
+          cogs: referenceQuote.unitCost,
+          shippingCost: referenceQuote.usShippingCost,
+          packagingCost: opportunity.packagingCost,
+          paymentFeePct: opportunity.paymentFeePct,
+          discountPct: opportunity.discountPct,
+          refundRatePct: opportunity.refundRatePct,
+        })
+      : null;
 
   const defaultValues: OpportunityFormValues = {
     name: opportunity.name,
@@ -71,6 +111,7 @@ export default async function OpportunityDetailPage({
     source: opportunity.source,
     trendSignal: opportunity.trendSignal,
     trendEvidence: opportunity.trendEvidence ?? "",
+    riskCategory: opportunity.riskCategory,
     scoreTrendVelocity: opportunity.scoreTrendVelocity,
     scoreCreativePotential: opportunity.scoreCreativePotential,
     scoreMarginPotential: opportunity.scoreMarginPotential,
@@ -113,13 +154,20 @@ export default async function OpportunityDetailPage({
           <div className={styles.badgeRow}>
             <StatusBadge status={status} />
             <RiskBadge level={opportunity.riskLevel} />
+            {opportunity.recommendedAction && <RecommendedActionBadge action={opportunity.recommendedAction} />}
             {opportunity.isDemoData && <DemoBadge />}
             <span className={styles.category}>{opportunity.category}</span>
           </div>
+          {opportunity.recommendedActionReason && (
+            <p className={styles.recommendationReason}>{opportunity.recommendedActionReason}</p>
+          )}
         </div>
         <div className={styles.overallScore}>
           <div className={styles.overallScoreValue}>{opportunity.overallScore.toFixed(1)}</div>
           <div className={styles.overallScoreLabel}>Overall score / 10</div>
+          {opportunity.confidence !== null && (
+            <div className={styles.overallScoreLabel}>{Math.round(opportunity.confidence * 100)}% confidence</div>
+          )}
         </div>
       </div>
 
@@ -150,6 +198,47 @@ export default async function OpportunityDetailPage({
         )}
       </div>
 
+      {opportunity.trendEvidenceItems.length > 0 && (
+        <div className={styles.panel}>
+          <div className={styles.panelTitle}>
+            Trend evidence ({opportunity.trendEvidenceItems.length} real data point(s))
+          </div>
+          <table className={styles.simpleTable}>
+            <thead>
+              <tr>
+                <th>Evidence</th>
+                <th>Metric</th>
+                <th>Source</th>
+                <th>Observed</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {opportunity.trendEvidenceItems.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <strong>{item.label}</strong>
+                    <div className={styles.evidenceDescription}>{item.description}</div>
+                  </td>
+                  <td>{item.metricValue !== null ? `${item.metricValue} ${item.metricUnit ?? ""}` : "—"}</td>
+                  <td>
+                    {item.url ? (
+                      <a href={item.url} target="_blank" rel="noreferrer" className={styles.evidenceLink}>
+                        {item.source}
+                      </a>
+                    ) : (
+                      item.source
+                    )}
+                  </td>
+                  <td>{formatDate(item.observedAt)}</td>
+                  <td>{Math.round(item.confidence * 100)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div className={styles.transitions}>
         {allowedTransitions.map((target) => (
           <form action={transitionFromDetail} key={target}>
@@ -168,21 +257,43 @@ export default async function OpportunityDetailPage({
       <div className={styles.tabGrid}>
         <div>
           <div className={styles.panel}>
-            <div className={styles.panelTitle}>Scoring breakdown</div>
+            <div className={styles.panelTitle}>
+              Scoring breakdown
+              <form action={rerunValidatorAction}>
+                <input type="hidden" name="opportunityId" value={opportunity.id} />
+                <button type="submit" className={styles.smallButton}>
+                  Re-run Validator
+                </button>
+              </form>
+            </div>
             <div className={styles.scoreRows}>
               {SCORE_DIMENSION_ORDER.map((dimension) => {
                 const value = scoreFieldMap[dimension];
+                const detail = scoreDetails?.[dimension];
                 return (
-                  <div className={styles.scoreRow} key={dimension}>
-                    <span className={styles.scoreLabel}>{SCORE_DIMENSION_LABELS[dimension]}</span>
-                    <span className={styles.scoreTrack}>
-                      <span className={styles.scoreFill} style={{ width: `${(value / 10) * 100}%` }} />
-                    </span>
-                    <span className={styles.scoreValue}>{value.toFixed(1)}</span>
+                  <div key={dimension}>
+                    <div className={styles.scoreRow}>
+                      <span className={styles.scoreLabel}>{SCORE_DIMENSION_LABELS[dimension]}</span>
+                      <span className={styles.scoreTrack}>
+                        <span className={styles.scoreFill} style={{ width: `${(value / 10) * 100}%` }} />
+                      </span>
+                      <span className={styles.scoreValue}>{value.toFixed(1)}</span>
+                    </div>
+                    {detail && (
+                      <div className={styles.scoreDetail}>
+                        {detail.reason} {detail.evidence.length > 0 && `(${detail.evidence.length} evidence row(s), ${Math.round(detail.confidence * 100)}% confidence)`}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
+            {!scoreDetails && (
+              <div className={styles.notConfiguredNote}>
+                No evidence-backed scoring yet — these are hand-entered values. Run Scout or click
+                "Re-run Validator" once trend evidence exists.
+              </div>
+            )}
           </div>
 
           <div className={styles.panel}>
@@ -211,6 +322,31 @@ export default async function OpportunityDetailPage({
             </div>
           </div>
 
+          {pricingScenarios && (
+            <div className={styles.panel}>
+              <div className={styles.panelTitle}>Suggested pricing scenarios</div>
+              <p className={styles.evidenceDescription} style={{ marginBottom: 12 }}>
+                A landed-cost heuristic from the reference supplier quote below — not market or
+                competitor data. Labeled SUGGESTED RETAIL on purpose.
+              </p>
+              <div className={styles.scenarioGrid}>
+                {pricingScenarios.map((scenario) => (
+                  <div className={styles.scenarioCard} key={scenario.label}>
+                    <div className={styles.scenarioLabel}>{scenario.label}</div>
+                    <div className={styles.scenarioPrice}>SUGGESTED RETAIL {formatCurrency(scenario.sellingPrice)}</div>
+                    <EconItem label="Gross profit / unit" value={formatCurrency(scenario.result.grossProfitPerUnit)} />
+                    <EconItem label="Gross margin" value={formatPercent(scenario.result.grossMarginPct)} />
+                    <EconItem label="Break-even CPA" value={formatCurrency(scenario.result.breakEvenCpa)} />
+                    <EconItem
+                      label="Break-even ROAS"
+                      value={scenario.result.breakEvenRoas ? formatMultiplier(scenario.result.breakEvenRoas) : "No margin"}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <details className={styles.detailsToggle}>
             <summary>Edit opportunity (info, scoring, economics)</summary>
             <OpportunityForm
@@ -222,60 +358,101 @@ export default async function OpportunityDetailPage({
           </details>
 
           <div className={styles.panel} style={{ marginTop: 20 }}>
-            <div className={styles.panelTitle}>Supplier shortlist</div>
+            <div className={styles.panelTitle}>
+              Sourcing
+              <form action={runSourcingAction}>
+                <input type="hidden" name="opportunityId" value={opportunity.id} />
+                <button type="submit" className={styles.smallButton}>
+                  Find Suppliers
+                </button>
+              </form>
+            </div>
+
+            <div className={styles.scoutProviders} style={{ marginBottom: 14 }}>
+              {supplierProviderStatuses.map((p) => (
+                <ProviderStatusBadge key={p.key} label={p.label} status={p.status} />
+              ))}
+            </div>
+
             {opportunity.suppliers.length === 0 ? (
               <div className={styles.emptyState}>
-                No supplier quotes yet. Nothing is fabricated here — add a real quote below, or leave
-                fields UNKNOWN.
+                No supplier candidates yet. Click "Find Suppliers" to search configured providers, or
+                add a real quote below by hand.
               </div>
             ) : (
-              <table className={styles.simpleTable}>
-                <thead>
-                  <tr>
-                    <th>Supplier</th>
-                    <th>Platform</th>
-                    <th>Unit cost</th>
-                    <th>US shipping</th>
-                    <th>Delivery</th>
-                    <th>MOQ</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {opportunity.suppliers.map((quote) => (
-                    <tr key={quote.id}>
-                      <td>
-                        {quote.supplier.name}
-                        {quote.isRecommended && (
-                          <div className={styles.recommendedTag}>Recommended</div>
-                        )}
-                      </td>
-                      <td>{quote.supplier.platform ?? "UNKNOWN"}</td>
-                      <td>{quote.unitCost !== null ? formatCurrency(quote.unitCost) : "UNKNOWN"}</td>
-                      <td>
-                        {quote.usShippingCost !== null ? formatCurrency(quote.usShippingCost) : "UNKNOWN"}
-                      </td>
-                      <td>{quote.estimatedDeliveryDays !== null ? `${quote.estimatedDeliveryDays}d` : "UNKNOWN"}</td>
-                      <td>{quote.moq ?? "UNKNOWN"}</td>
-                      <td>
-                        {!quote.isRecommended && (
-                          <form action={setRecommendedSupplierQuote}>
-                            <input type="hidden" name="opportunityId" value={opportunity.id} />
-                            <input type="hidden" name="quoteId" value={quote.id} />
-                            <button type="submit" className={styles.smallButton}>
-                              Recommend
-                            </button>
-                          </form>
-                        )}
-                      </td>
+              <div className={styles.tableScroll}>
+                <table className={`${styles.simpleTable} ${styles.comparisonTable}`}>
+                  <thead>
+                    <tr>
+                      <th>Supplier</th>
+                      <th>Platform</th>
+                      <th>Product</th>
+                      <th>Variant</th>
+                      <th>Unit cost</th>
+                      <th>US shipping</th>
+                      <th>Landed cost</th>
+                      <th>Warehouse</th>
+                      <th>Delivery</th>
+                      <th>MOQ</th>
+                      <th>Score</th>
+                      <th>Confidence</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {opportunity.suppliers.map((quote) => (
+                      <tr key={quote.id}>
+                        <td>{quote.supplier.name}</td>
+                        <td>{quote.supplier.platform ?? quote.providerKey}</td>
+                        <td>
+                          {quote.productUrl ? (
+                            <a href={quote.productUrl} target="_blank" rel="noreferrer" className={styles.evidenceLink}>
+                              {quote.externalProductId ?? "listing"}
+                            </a>
+                          ) : (
+                            quote.externalProductId ?? "—"
+                          )}
+                        </td>
+                        <td>{quote.variantName ?? "—"}</td>
+                        <td>{quote.unitCost !== null ? formatCurrency(quote.unitCost) : "UNKNOWN"}</td>
+                        <td>{quote.usShippingCost !== null ? formatCurrency(quote.usShippingCost) : "UNKNOWN"}</td>
+                        <td>{quote.landedCost !== null ? formatCurrency(quote.landedCost) : "UNKNOWN"}</td>
+                        <td>{quote.warehouse ?? "UNKNOWN"}</td>
+                        <td>
+                          {quote.estimatedDeliveryDaysMin !== null
+                            ? `${quote.estimatedDeliveryDaysMin}-${quote.estimatedDeliveryDaysMax}d`
+                            : quote.estimatedDeliveryDays !== null
+                              ? `${quote.estimatedDeliveryDays}d`
+                              : "UNKNOWN"}
+                        </td>
+                        <td>{quote.moq ?? "UNKNOWN"}</td>
+                        <td>{quote.totalScore !== null ? `${quote.totalScore}/100` : "—"}</td>
+                        <td>{quote.confidence !== null ? `${Math.round(quote.confidence * 100)}%` : "—"}</td>
+                        <td>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
+                            {quote.isSystemRecommended && <span className={styles.recommendedTag}>Best for validation</span>}
+                            {quote.isSelectedForValidation ? (
+                              <span className={styles.recommendedTag}>Selected</span>
+                            ) : (
+                              <form action={selectValidationSupplierQuote}>
+                                <input type="hidden" name="opportunityId" value={opportunity.id} />
+                                <input type="hidden" name="quoteId" value={quote.id} />
+                                <button type="submit" className={styles.smallButton}>
+                                  Select as validation supplier
+                                </button>
+                              </form>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             <details className={styles.detailsToggle}>
-              <summary>Add supplier quote</summary>
+              <summary>Add supplier quote by hand</summary>
               <form action={addSupplierQuote}>
                 <input type="hidden" name="opportunityId" value={opportunity.id} />
                 <div className={formStyles.grid3} style={{ marginTop: 12 }}>
@@ -339,6 +516,8 @@ export default async function OpportunityDetailPage({
               </form>
             </details>
           </div>
+
+          {opportunity.product && <CompliancePanel opportunityId={opportunity.id} product={opportunity.product} />}
 
           <div className={styles.panel}>
             <div className={styles.panelTitle}>Brand concepts</div>
@@ -664,6 +843,179 @@ function MetaRow({ label, value }: { label: string; value: string }) {
     <div className={styles.metaItem}>
       <div className={styles.metaLabel}>{label}</div>
       <div className={styles.metaValue}>{value}</div>
+    </div>
+  );
+}
+
+type ProductWithCompliance = NonNullable<
+  Awaited<ReturnType<typeof prisma.product.findUnique>>
+>;
+
+// Part 14 — the compliance gate. A supplier can be selected for research/
+// sample at any time; this panel is what has to say CLEARED before the
+// opportunity can leave COMPLIANCE_REQUIRED.
+function CompliancePanel({
+  opportunityId,
+  product,
+}: {
+  opportunityId: string;
+  product: ProductWithCompliance;
+}) {
+  const requiresReview = requiresComplianceReview(product.riskCategory as RiskCategory);
+  const statusColor: Record<string, string> = {
+    CLEARED: "#4fd995",
+    IN_REVIEW: "#e6c04a",
+    REQUIRED: "#f08383",
+    NOT_REQUIRED: "#9aa2ad",
+  };
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.panelTitle}>Compliance</div>
+      <div className={styles.badgeRow} style={{ marginBottom: 12 }}>
+        <span className={formStyles.label}>{product.riskCategory}</span>
+        <span
+          className={styles.recommendedTag}
+          style={{ color: statusColor[product.complianceStatus] ?? "#9aa2ad" }}
+        >
+          {product.complianceStatus.replace("_", " ")}
+        </span>
+      </div>
+      {!requiresReview ? (
+        <div className={styles.emptyState}>
+          Risk category {product.riskCategory} does not require a compliance review. This is never
+          inferred from seller marketing text — set it explicitly on the opportunity/edit form if that
+          changes.
+        </div>
+      ) : (
+        <>
+          <div className={styles.notConfiguredNote}>
+            {product.complianceStatus === "CLEARED"
+              ? `Cleared by ${product.complianceReviewedBy ?? "unknown reviewer"} on ${formatDate(product.complianceReviewedAt)}.`
+              : "This risk category requires a human compliance review before the opportunity can proceed to READY_TO_BUILD. A supplier may still be selected for research/sample."}
+          </div>
+
+          {product.complianceStatus === "CLEARED" ? (
+            <form action={reopenCompliance} style={{ marginTop: 10 }}>
+              <input type="hidden" name="opportunityId" value={opportunityId} />
+              <input type="hidden" name="productId" value={product.id} />
+              <button type="submit" className={styles.smallButton}>
+                Reopen review
+              </button>
+            </form>
+          ) : (
+            <form action={clearCompliance} style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <input type="hidden" name="opportunityId" value={opportunityId} />
+              <input type="hidden" name="productId" value={product.id} />
+              <input
+                className={formStyles.input}
+                name="reviewedBy"
+                placeholder="Reviewer name"
+                style={{ maxWidth: 200 }}
+              />
+              <button type="submit" className={`${styles.smallButton} ${styles.smallButtonPositive}`}>
+                Mark cleared
+              </button>
+            </form>
+          )}
+        </>
+      )}
+
+      <details className={styles.detailsToggle}>
+        <summary>Compliance details</summary>
+        <form action={updateComplianceDetails}>
+          <input type="hidden" name="opportunityId" value={opportunityId} />
+          <input type="hidden" name="productId" value={product.id} />
+          <div className={formStyles.grid3} style={{ marginTop: 12 }}>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Risk category</label>
+              <select className={formStyles.select} name="riskCategory" defaultValue={product.riskCategory}>
+                {RISK_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Manufacturer</label>
+              <input className={formStyles.input} name="manufacturer" defaultValue={product.manufacturer ?? ""} />
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Manufacturing country</label>
+              <input
+                className={formStyles.input}
+                name="manufacturingCountry"
+                defaultValue={product.manufacturingCountry ?? ""}
+              />
+            </div>
+            <div className={`${formStyles.field} ${formStyles.fieldWide}`}>
+              <label className={formStyles.label}>Ingredients (never inferred — enter from real documentation)</label>
+              <textarea className={formStyles.textarea} name="ingredients" defaultValue={product.ingredients ?? ""} />
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Certificate of Analysis URL</label>
+              <input className={formStyles.input} name="coaUrl" defaultValue={product.coaUrl ?? ""} />
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Testing documents URL</label>
+              <input
+                className={formStyles.input}
+                name="testingDocumentsUrl"
+                defaultValue={product.testingDocumentsUrl ?? ""}
+              />
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>GMP certified?</label>
+              <select
+                className={formStyles.select}
+                name="gmpCertified"
+                defaultValue={product.gmpCertified === null ? "" : String(product.gmpCertified)}
+              >
+                <option value="">UNKNOWN</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Labeling review</label>
+              <select className={formStyles.select} name="labelingReviewStatus" defaultValue={product.labelingReviewStatus}>
+                <option value="NOT_STARTED">NOT_STARTED</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="COMPLETE">COMPLETE</option>
+              </select>
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>Claims review</label>
+              <select className={formStyles.select} name="claimsReviewStatus" defaultValue={product.claimsReviewStatus}>
+                <option value="NOT_STARTED">NOT_STARTED</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="COMPLETE">COMPLETE</option>
+              </select>
+            </div>
+            <div className={formStyles.field}>
+              <label className={formStyles.label}>
+                FDA-relevant status (never claim approval — this is a status note, not a certification)
+              </label>
+              <select className={formStyles.select} name="fdaRelevantStatus" defaultValue={product.fdaRelevantStatus}>
+                <option value="NOT_REVIEWED">NOT_REVIEWED</option>
+                <option value="NOT_APPLICABLE">NOT_APPLICABLE</option>
+                <option value="REVIEW_IN_PROGRESS">REVIEW_IN_PROGRESS</option>
+                <option value="DISCLAIMER_REQUIRED">DISCLAIMER_REQUIRED</option>
+              </select>
+            </div>
+            <div className={`${formStyles.field} ${formStyles.fieldWide}`}>
+              <label className={formStyles.label}>Notes</label>
+              <textarea className={formStyles.textarea} name="complianceNotes" defaultValue={product.complianceNotes ?? ""} />
+            </div>
+          </div>
+          <div className={formStyles.submitRow}>
+            <button type="submit" className={formStyles.primaryButton}>
+              Save compliance details
+            </button>
+          </div>
+        </form>
+      </details>
     </div>
   );
 }

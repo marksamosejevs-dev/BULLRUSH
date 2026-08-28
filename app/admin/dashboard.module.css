@@ -38,6 +38,86 @@
   background: #ffffff;
 }
 
+.scoutPanel {
+  border: 1px solid #22262d;
+  border-radius: 6px;
+  background: #101318;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.scoutHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.scoutTitle {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f4f2ee;
+}
+
+.scoutSubtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  max-width: 72ch;
+}
+
+.scoutForm {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.scoutInput {
+  flex: 1;
+  background: #14171c;
+  border: 1px solid #262b33;
+  border-radius: 4px;
+  padding: 8px 10px;
+  color: #e6e8eb;
+  font-size: 0.8125rem;
+}
+
+.scoutInput:focus {
+  outline: none;
+  border-color: #4f8cff;
+}
+
+.scoutButton {
+  padding: 8px 16px;
+  background: #e6e8eb;
+  color: #101318;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.scoutButton:hover {
+  background: #ffffff;
+}
+
+.scoutProviders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recommendedAction {
+  margin-top: 3px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #7fabff;
+}
+
 .filters {
   display: flex;
   gap: 6px;

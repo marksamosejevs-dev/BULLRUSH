@@ -6,11 +6,17 @@ import {
   ApprovalAction,
   ApprovalStatus,
   CreativeType,
+  ComplianceStatus as PrismaComplianceStatus,
+  RiskCategory as PrismaRiskCategory,
   RiskLevel as PrismaRiskLevel,
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calculateOverallScore, deriveRiskLevel, ScoringInput } from "@/lib/scoring";
 import { canTransition, OpportunityStatus } from "@/lib/state-machine";
+import { initialComplianceStatus, requiresComplianceReview, RiskCategory } from "@/lib/compliance";
+import { runScout } from "@/agents/scout";
+import { runSourcing } from "@/agents/sourcing";
+import { runValidator } from "@/agents/validator";
 
 function num(formData: FormData, key: string, fallback = 0): number {
   const raw = formData.get(key);
@@ -48,6 +54,8 @@ async function applyTransition(id: string, to: OpportunityStatus) {
 
   // Approving a test is the milestone: it starts the concrete Product
   // record that later carries brand name, domain, and Shopify draft info.
+  // Risk category and the compliance gate's starting status are copied in
+  // at creation time so the gate can never be skipped by omission.
   if (to === "APPROVED_FOR_TEST") {
     await prisma.product.upsert({
       where: { opportunityId: id },
@@ -55,6 +63,8 @@ async function applyTransition(id: string, to: OpportunityStatus) {
         opportunityId: id,
         name: opportunity.name,
         category: opportunity.category,
+        riskCategory: opportunity.riskCategory,
+        complianceStatus: initialComplianceStatus(opportunity.riskCategory as RiskCategory) as PrismaComplianceStatus,
       },
       update: {},
     });
@@ -101,6 +111,7 @@ export async function createOpportunity(formData: FormData) {
       source: str(formData, "source") || "Manual entry",
       trendSignal: str(formData, "trendSignal"),
       trendEvidence: optionalStr(formData, "trendEvidence"),
+      riskCategory: (str(formData, "riskCategory") || "UNKNOWN") as PrismaRiskCategory,
       scoreTrendVelocity: scores.trendVelocity,
       scoreCreativePotential: scores.creativePotential,
       scoreMarginPotential: scores.marginPotential,
@@ -154,6 +165,7 @@ export async function updateOpportunity(formData: FormData) {
       source: str(formData, "source"),
       trendSignal: str(formData, "trendSignal"),
       trendEvidence: optionalStr(formData, "trendEvidence"),
+      riskCategory: (str(formData, "riskCategory") || "UNKNOWN") as PrismaRiskCategory,
       scoreTrendVelocity: scores.trendVelocity,
       scoreCreativePotential: scores.creativePotential,
       scoreMarginPotential: scores.marginPotential,
@@ -177,6 +189,33 @@ export async function updateOpportunity(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath(`/admin/opportunities/${id}`);
+}
+
+// ---------------------------------------------------------------------------
+// Scout (Part 1, 16) — real, query-directed research
+// ---------------------------------------------------------------------------
+
+export async function runScoutAction(formData: FormData) {
+  const query = str(formData, "query");
+  if (!query) return;
+  await runScout(query);
+  revalidatePath("/admin");
+}
+
+// ---------------------------------------------------------------------------
+// Sourcing (Parts 4-11, 16) — real supplier search + shipping quotes
+// ---------------------------------------------------------------------------
+
+export async function runSourcingAction(formData: FormData) {
+  const opportunityId = str(formData, "opportunityId");
+  await runSourcing(opportunityId);
+  revalidatePath(`/admin/opportunities/${opportunityId}`);
+}
+
+export async function rerunValidatorAction(formData: FormData) {
+  const opportunityId = str(formData, "opportunityId");
+  await runValidator(opportunityId);
+  revalidatePath(`/admin/opportunities/${opportunityId}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -207,12 +246,17 @@ export async function addSupplierQuote(formData: FormData) {
     supplierId = supplier.id;
   }
 
+  const unitCost = parseOptionalFloat(formData, "unitCost");
+  const usShippingCost = parseOptionalFloat(formData, "usShippingCost");
+
   await prisma.supplierQuote.create({
     data: {
       opportunityId,
       supplierId,
-      unitCost: parseOptionalFloat(formData, "unitCost"),
-      usShippingCost: parseOptionalFloat(formData, "usShippingCost"),
+      providerKey: "MANUAL",
+      unitCost,
+      usShippingCost,
+      landedCost: unitCost !== null && usShippingCost !== null ? unitCost + usShippingCost : null,
       estimatedDeliveryDays: parseOptionalInt(formData, "estimatedDeliveryDays"),
       moq: parseOptionalInt(formData, "quoteMoq"),
       notes: optionalStr(formData, "quoteNotes"),
@@ -222,20 +266,132 @@ export async function addSupplierQuote(formData: FormData) {
   revalidatePath(`/admin/opportunities/${opportunityId}`);
 }
 
-export async function setRecommendedSupplierQuote(formData: FormData) {
+// Explicit human selection (Part 12/13) — separate from the matching
+// engine's automatic isSystemRecommended pick. Persists the supplier/
+// variant mapping on Product and applies the compliance gate (Part 14):
+// a regulated risk category that hasn't been cleared routes to
+// COMPLIANCE_REQUIRED instead of READY_TO_BUILD. Never places an order.
+export async function selectValidationSupplierQuote(formData: FormData) {
   const opportunityId = str(formData, "opportunityId");
   const quoteId = str(formData, "quoteId");
 
-  await prisma.$transaction([
-    prisma.supplierQuote.updateMany({
-      where: { opportunityId },
-      data: { isRecommended: false },
-    }),
-    prisma.supplierQuote.update({
-      where: { id: quoteId },
-      data: { isRecommended: true },
-    }),
+  const [opportunity, product] = await Promise.all([
+    prisma.productOpportunity.findUniqueOrThrow({ where: { id: opportunityId } }),
+    prisma.product.findUnique({ where: { opportunityId } }),
   ]);
+
+  await prisma.$transaction([
+    prisma.supplierQuote.updateMany({ where: { opportunityId }, data: { isSelectedForValidation: false } }),
+    prisma.supplierQuote.update({ where: { id: quoteId }, data: { isSelectedForValidation: true } }),
+  ]);
+
+  if (!product) {
+    // No Product record yet (opportunity was never approved for test) —
+    // record the selection but there's no compliance gate or status to
+    // move without a Product to attach it to.
+    revalidatePath(`/admin/opportunities/${opportunityId}`);
+    return;
+  }
+
+  await prisma.product.update({ where: { id: product.id }, data: { selectedSupplierQuoteId: quoteId } });
+
+  const requiresReview = requiresComplianceReview(product.riskCategory as RiskCategory);
+  const cleared = product.complianceStatus === "CLEARED";
+  const target: OpportunityStatus = requiresReview && !cleared ? "COMPLIANCE_REQUIRED" : "READY_TO_BUILD";
+
+  if (canTransition(opportunity.status as OpportunityStatus, target)) {
+    await prisma.productOpportunity.update({ where: { id: opportunityId }, data: { status: target } });
+  }
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/opportunities/${opportunityId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Compliance gate (Part 14)
+// ---------------------------------------------------------------------------
+
+export async function updateComplianceDetails(formData: FormData) {
+  const opportunityId = str(formData, "opportunityId");
+  const productId = str(formData, "productId");
+  const riskCategory = (str(formData, "riskCategory") || "UNKNOWN") as PrismaRiskCategory;
+
+  const requiresReview = requiresComplianceReview(riskCategory as RiskCategory);
+  const current = await prisma.product.findUniqueOrThrow({ where: { id: productId } });
+
+  // Changing risk category (or editing details before a review is done)
+  // never auto-clears — only the explicit "Mark cleared" action below can
+  // set CLEARED. It only resets an already-cleared status if the category
+  // itself changed, since that invalidates the prior review.
+  const categoryChanged = current.riskCategory !== riskCategory;
+  const complianceStatus: PrismaComplianceStatus = !requiresReview
+    ? "NOT_REQUIRED"
+    : current.complianceStatus === "CLEARED" && !categoryChanged
+      ? "CLEARED"
+      : "IN_REVIEW";
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      riskCategory,
+      complianceStatus,
+      ingredients: optionalStr(formData, "ingredients"),
+      manufacturer: optionalStr(formData, "manufacturer"),
+      manufacturingCountry: optionalStr(formData, "manufacturingCountry"),
+      coaUrl: optionalStr(formData, "coaUrl"),
+      gmpCertified: parseOptionalBool(formData, "gmpCertified"),
+      testingDocumentsUrl: optionalStr(formData, "testingDocumentsUrl"),
+      labelingReviewStatus: str(formData, "labelingReviewStatus") || "NOT_STARTED",
+      fdaRelevantStatus: str(formData, "fdaRelevantStatus") || "NOT_REVIEWED",
+      claimsReviewStatus: str(formData, "claimsReviewStatus") || "NOT_STARTED",
+      complianceNotes: optionalStr(formData, "complianceNotes"),
+    },
+  });
+
+  // Keep the opportunity's own risk category in sync too, so re-running
+  // Sourcing or viewing the opportunity list reflects the same category.
+  await prisma.productOpportunity.update({ where: { id: opportunityId }, data: { riskCategory } });
+
+  revalidatePath(`/admin/opportunities/${opportunityId}`);
+}
+
+// A deliberate, separate action — clearing compliance is a human decision
+// that must be explicit, never a side effect of editing other fields.
+export async function clearCompliance(formData: FormData) {
+  const opportunityId = str(formData, "opportunityId");
+  const productId = str(formData, "productId");
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      complianceStatus: "CLEARED",
+      complianceReviewedBy: optionalStr(formData, "reviewedBy"),
+      complianceReviewedAt: new Date(),
+    },
+  });
+
+  // If the opportunity was blocked on this gate, it can now proceed —
+  // still requires a validation supplier to already be selected.
+  const opportunity = await prisma.productOpportunity.findUniqueOrThrow({ where: { id: opportunityId } });
+  if (
+    opportunity.status === "COMPLIANCE_REQUIRED" &&
+    canTransition(opportunity.status as OpportunityStatus, "READY_TO_BUILD")
+  ) {
+    await prisma.productOpportunity.update({ where: { id: opportunityId }, data: { status: "READY_TO_BUILD" } });
+  }
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/opportunities/${opportunityId}`);
+}
+
+export async function reopenCompliance(formData: FormData) {
+  const opportunityId = str(formData, "opportunityId");
+  const productId = str(formData, "productId");
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: { complianceStatus: "IN_REVIEW", complianceReviewedBy: null, complianceReviewedAt: null },
+  });
 
   revalidatePath(`/admin/opportunities/${opportunityId}`);
 }

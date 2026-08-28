@@ -81,3 +81,38 @@ export function calculateEconomics(input: EconomicsInput): EconomicsResult {
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
+
+// ---------------------------------------------------------------------------
+// Suggested pricing scenarios (Part 11) — a landed-cost-driven heuristic,
+// NOT market data. A target cost-to-retail ratio per scenario, rounded to a
+// .95 price point. Always label these "SUGGESTED RETAIL" in the UI.
+// ---------------------------------------------------------------------------
+
+export interface PricingScenario {
+  label: "CONSERVATIVE" | "BASE" | "PREMIUM";
+  targetCostRatio: number;
+  sellingPrice: number;
+  result: EconomicsResult;
+}
+
+const PRICING_SCENARIOS: { label: PricingScenario["label"]; targetCostRatio: number }[] = [
+  { label: "CONSERVATIVE", targetCostRatio: 0.32 },
+  { label: "BASE", targetCostRatio: 0.25 },
+  { label: "PREMIUM", targetCostRatio: 0.18 },
+];
+
+export function suggestPricingScenarios(
+  input: Omit<EconomicsInput, "sellingPrice">,
+): PricingScenario[] {
+  const cost = input.cogs + input.shippingCost + input.packagingCost;
+  return PRICING_SCENARIOS.map(({ label, targetCostRatio }) => {
+    const raw = cost / targetCostRatio;
+    const sellingPrice = raw > 0 ? Math.max(0, Math.floor(raw) + 0.95) : 0;
+    return {
+      label,
+      targetCostRatio,
+      sellingPrice,
+      result: calculateEconomics({ ...input, sellingPrice }),
+    };
+  });
+}
