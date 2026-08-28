@@ -1,0 +1,303 @@
+// BULLRUSH Internal E-Commerce Agent — Phase 1 data model
+//
+// This schema covers the foundation only: the pipeline that takes a
+// product opportunity from discovery through an internal approval to
+// "ready for review." Nothing here executes external/billable actions —
+// see the Approval model and docs/ARCHITECTURE.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+// The single lifecycle every ProductOpportunity moves through.
+enum OpportunityStatus {
+  DISCOVERED
+  VALIDATING
+  WATCH
+  REJECTED
+  APPROVED_FOR_TEST
+  SOURCING
+  READY_TO_BUILD
+  BUILDING
+  READY_FOR_REVIEW
+  LIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum RiskLevel {
+  UNKNOWN
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum SupplierStatus {
+  UNKNOWN
+  UNVERIFIED
+  CONTACTED
+  QUOTED
+  APPROVED
+  REJECTED
+}
+
+enum CreativeType {
+  UGC_SCRIPT
+  VISUAL_ASSET
+  META_BRIEF
+  TIKTOK_BRIEF
+  LANDING_PAGE_COPY
+}
+
+enum CreativeStatus {
+  NOT_CONFIGURED
+  DRAFT
+  READY
+}
+
+// Billable / external actions. Creating one of these NEVER performs the
+// action — it only records that the action has been requested and its
+// decision. Execution is out of scope for Phase 1.
+enum ApprovalAction {
+  BUY_DOMAIN
+  ORDER_SAMPLE
+  PUBLISH_PRODUCT
+  LAUNCH_META
+  LAUNCH_TIKTOK
+  INCREASE_BUDGET
+  ORDER_INVENTORY
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum JobRunStatus {
+  NOT_CONFIGURED
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model ProductOpportunity {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  category    String
+  description String
+  source      String // e.g. "Manual entry", "TikTok ads library" — freeform until Scout agent exists
+  status      OpportunityStatus @default(DISCOVERED)
+
+  // Demo/seed data must always be flagged so it's never mistaken for a
+  // real researched opportunity.
+  isDemoData Boolean @default(false)
+
+  // Trend evidence is a plain-text note, not a live data feed, until the
+  // Scout agent (Phase 2) is wired up.
+  trendSignal   String
+  trendEvidence String?
+
+  // --- Scoring (see lib/scoring.ts) — each dimension is scored 0-10 ---
+  scoreTrendVelocity         Float
+  scoreCreativePotential     Float
+  scoreMarginPotential       Float
+  scoreMarketDemand          Float
+  scoreCompetition           Float
+  scoreFulfillmentSimplicity Float
+  scoreRepeatPurchase        Float
+  scoreRegulatoryRisk        Float
+  scoreBrandability          Float
+
+  // Denormalized/stored results of lib/scoring.ts, recomputed on every save.
+  overallScore Float
+  riskLevel    RiskLevel @default(UNKNOWN)
+
+  // --- Economics inputs (see lib/economics.ts) ---
+  sellingPrice   Float // suggested retail price, USD
+  cogs           Float // unit product cost
+  shippingCost   Float // US shipping cost, per unit
+  packagingCost  Float @default(0)
+  paymentFeePct  Float @default(2.9) // payment processor fee, % of selling price
+  discountPct    Float @default(0) // typical discount/offer, % of selling price
+  refundRatePct  Float @default(0) // assumed refund rate, % of orders
+
+  suppliers     SupplierQuote[]
+  product       Product?
+  brandConcepts BrandConcept[]
+  creatives     Creative[]
+  approvals     Approval[]
+  jobRuns       JobRun[]
+
+  @@index([status])
+  @@index([isDemoData])
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name       String
+  platform   String? // e.g. Alibaba, 1688, domestic distributor — UNKNOWN if not set
+  productUrl String?
+
+  usWarehouse           Boolean? // null = unknown
+  moq                   Int?
+  rating                Float?
+  ordersCount           Int?
+  privateLabelAvailable Boolean?
+  shopifyIntegration    Boolean?
+
+  riskLevel RiskLevel      @default(UNKNOWN)
+  status    SupplierStatus @default(UNKNOWN)
+  notes     String?
+
+  quotes SupplierQuote[]
+}
+
+// A supplier's quote against one specific opportunity. Nothing here is
+// fabricated — every numeric field is nullable and left empty until a real
+// quote exists.
+model SupplierQuote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String
+
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplierId String
+
+  unitCost              Float?
+  usShippingCost        Float?
+  estimatedDeliveryDays Int?
+  moq                   Int?
+  isRecommended         Boolean @default(false)
+  notes                 String?
+
+  @@index([opportunityId])
+  @@index([supplierId])
+}
+
+model BrandConcept {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String
+
+  productName      String?
+  brandName        String?
+  tagline          String?
+  offer            String?
+  positioning      String?
+  domainCandidates String[] @default([]) // candidates only; availability is NOT_CONFIGURED until /services/domains exists
+  isSelected       Boolean  @default(false)
+
+  @@index([opportunityId])
+}
+
+model Creative {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String
+
+  type    CreativeType
+  title   String
+  content String? // script / brief text
+  assetUrl String? // populated once /services/images exists
+  status  CreativeStatus @default(NOT_CONFIGURED)
+
+  @@index([opportunityId])
+}
+
+// Every billable or external action funnels through here. Recording an
+// Approval never performs the action — see docs/ARCHITECTURE.md.
+model Approval {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String
+
+  action        ApprovalAction
+  status        ApprovalStatus @default(PENDING)
+  requestedBy   String?
+  decidedBy     String?
+  notes         String?
+  estimatedCost Float?
+  decidedAt     DateTime?
+
+  @@index([opportunityId])
+  @@index([status])
+}
+
+// A record of one agent/service invocation. Phase 1 has no autonomous
+// agents running yet, so rows here are created manually or left absent —
+// the model exists so Phase 2 agents have somewhere to log to from day one.
+model JobRun {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  opportunityId String?
+
+  agent        String // "scout" | "validator" | "sourcing" | "brand" | "creative" | ...
+  status       JobRunStatus @default(NOT_CONFIGURED)
+  input        Json?
+  output       Json?
+  errorMessage String?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  @@index([opportunityId])
+  @@index([agent])
+}
+
+// Created once an opportunity is approved for test and moves toward being
+// built. Holds the concrete, buildable product record.
+model Product {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunity   ProductOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId String             @unique
+
+  name        String
+  brandName   String?
+  category    String
+  description String?
+
+  domain         String? // NOT purchased — see /services/domains and ApprovalAction.BUY_DOMAIN
+  landingPageUrl String?
+
+  shopifyProductId String? // null until /services/shopify is configured
+  shopifyStatus     String  @default("NOT_CONFIGURED")
+}

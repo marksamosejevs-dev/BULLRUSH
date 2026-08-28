@@ -1,0 +1,86 @@
+.shell {
+  min-height: 100vh;
+  background: #0b0d10;
+  color: #e6e8eb;
+  font-family: var(--font-text), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 24px;
+  height: 56px;
+  background: #101318;
+  border-bottom: 1px solid #22262d;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono, monospace);
+}
+
+.brandMark {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: #f4f2ee;
+  text-transform: uppercase;
+}
+
+.brandSub {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #9aa2ad;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.navLink:hover {
+  background: #1a1e24;
+  color: #e6e8eb;
+}
+
+.navLinkActive {
+  background: #1a1e24;
+  color: #f4f2ee;
+}
+
+.main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 0 16px;
+  }
+  .main {
+    padding: 20px 16px 60px;
+  }
+  .brandSub {
+    display: none;
+  }
+}
